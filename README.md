@@ -9,4 +9,5 @@ My strongest languages:
 - Rust
 - C
 
+In addition to coding projects, I have included two writing excerpts of mine to showcase my technical writings skills.  The first is a write up of the Berachain project that I completed as personal research.  The second was completed for a Concurrency and Parallel computing course.  
 
