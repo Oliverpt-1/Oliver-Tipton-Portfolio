@@ -1,6 +1,6 @@
 `Oliver Tipton Portfolio`
 
-In this repository I included a handful of my projects from various Davidson College courses, research, and independent project work/creation.  Within each project is a readme file that outlines setup and what the project is meant to do.  My primary focus has been in back-end development, specifically Java and Python for traditional Web2 projects and Solidity for Web3 smart contract based projects.  
+In this repository I included the two Web3 projects that I have worked on thus far.  Within each project is a readme file that outlines setup and what the project is meant to do.  The DAO is in progress and will be a part of the Davidson Blockchain Club that I will be starting on campus when I this fall.  The staking protocol is a mock to show my development skills and capabilities in developing DeFi applications.
 
 My strongest languages:
 - Java
@@ -8,3 +8,5 @@ My strongest languages:
 - Solidity
 - Rust
 - C
+
+
