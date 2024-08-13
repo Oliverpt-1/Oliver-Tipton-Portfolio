@@ -2,7 +2,7 @@
 
 ![Davidson DAO Banner](https://www.davidson.edu/sites/default/files/styles/max_650x650/public/2023-08/Primary-Lockup-NewsStory.png?itok=BJeJoK6D)
 
-### NOTE - This is the preemptive DAO I have built with plans to start Davidson's blockchain club this year.
+### NOTE - This is the preemptive DAO I have built with plans to start Davidson's blockchain club this year.  It is still in early development and is NOT runnable.
 
 ## Vision
 
