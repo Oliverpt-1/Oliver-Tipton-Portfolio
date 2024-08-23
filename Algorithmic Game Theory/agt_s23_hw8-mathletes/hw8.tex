@@ -1,0 +1,147 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{clrscode3e}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{color}
+\usepackage[shortlabels]{enumitem}
+\usepackage{multicol,multirow}
+\usepackage{csquotes}
+\usepackage[super]{nth}
+
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepgfplotslibrary{ternary, units}
+\usetikzlibrary{decorations.pathmorphing, pgfplots.ternary, pgfplots.units}
+
+\setlength{\parskip}{2mm}
+\setlength{\parindent}{0mm}
+
+\newcommand{\titlebox}[3]{
+    \begin{center}
+        \framebox{
+            \vbox{
+            \hbox to \textwidth { #1 \hfill #3}
+            \vspace{-4mm}
+            \hbox to \textwidth {\hfill \Large \bf #2 \hfill}
+        }
+    }
+    \end{center}
+}
+
+\renewcommand*\arraystretch{1.5}
+
+\newcommand\abs[1]{\left|#1\right|}
+
+\newcommand{\answer}[1]{
+\vspace{.5\baselineskip} \hrule \vspace{.5\baselineskip}
+#1
+\vspace{.5\baselineskip} \hrule \vspace{.5\baselineskip}
+}
+
+\begin{document}
+
+\titlebox{CSC 383, S'23}
+{Homework 8}
+{Due Apr. \nth{24}}
+
+\textbf{Directions:}
+
+Write your solutions using and \LaTeX.
+Then submit the files \texttt{hw8.tex}, \texttt{hw8.pdf}, \texttt{symmetric\_games.ipynb}, and \texttt{AGGs.ipynb}.
+
+
+
+
+
+\subsection*{Problem 1}
+
+Consider the following congestion game.
+\begin{itemize}
+\item Resources: $R = \{1,2,3\}$
+\item $A_i$ = $\{(1,2),(1,3),(2,3)\} \; \forall i \in P$ 
+\item Congestion Costs: \;\; $c_1(x) = x$ \;\;\;\; $c_2(x) = 2x - 2$ \;\;\;\; $c_3(x) = x^2$
+\end{itemize}
+
+\begin{enumerate}[(a)]
+
+\item
+Fill in the symmetric data structure for this game when $\abs{P} = 4$.
+
+configs:
+\begin{tabular}{|@{\hspace{4mm}}c@{\hspace{4mm}}|@{\hspace{4mm}}c@{\hspace{4mm}}|@{\hspace{4mm}}c@{\hspace{4mm}}|@{\hspace{4mm}}c@{\hspace{4mm}}|@{\hspace{4mm}}c@{\hspace{4mm}}|@{\hspace{4mm}}c@{\hspace{4mm}}|@{\hspace{4mm}}c@{\hspace{4mm}}|@{\hspace{4mm}}c@{\hspace{4mm}}|@{\hspace{4mm}}c@{\hspace{4mm}}|@{\hspace{4mm}}c@{\hspace{4mm}}|}
+\hline
+3&2&2&1&1&1&0&0&0&0 \\ \hline
+0&1&0&2&1&0&3&2&1&0 \\ \hline
+0&0&1&0&1&2&0&1&2&3 \\ \hline
+\end{tabular}
+
+\item
+Identify a pure-strategy Nash equilibrium in this game when $\abs{P} = 4$ and when $\abs{P} = 16$.
+
+
+\end{enumerate}
+
+
+
+\answer{
+
+\begin{enumerate}[(a)]
+
+\item 
+payoffs:
+\begin{tabular}{|c@{\hspace{4mm}}|c@{\hspace{4mm}}|c@{\hspace{4mm}}|c@{\hspace{4mm}}|c@{\hspace{4mm}}|c@{\hspace{4mm}}|c@{\hspace{4mm}}|c@{\hspace{4mm}}|c@{\hspace{4mm}}|c@{\hspace{4mm}}|c@{\hspace{4mm}}|c@{\hspace{4mm}}|}
+\hline
+-10&-8&-9&-8&-7&-8&-4&-5&-6&-7 \\ \hline
+-5&-8&-7&-13&-12&-11&-20&-19&-18&-17 \\ \hline
+-7&-8&-10& -11 & -13 & -15 & -16 & -18 & -20 &-22 \\ \hline
+\end{tabular}
+
+\item
+The Nash Equilibrium when $\abs{P} = 4$ is [2, 1, 1].  The Nash Equilibrium when $\abs{P} = 16$ is [12, 4, 0].  \\
+
+Work for proving [2,1,1] is Nash of 4 player game:\\
+
+\includegraphics[, width=12
+cm]{Photografia 2.png}
+
+Let $a_1$ or $a_2$ or $a_3$ denote the utility by playing that action in the original mixture - this is the number which we are comparing the deviations to.  As can be seen by this work, there is no action change for any player that will cause a positive gain by deviating.  There is one player who will have the same utility, however Nash Equilibrium is always greater-than-or-equal-to, since we expect players to sometimes be indifferent.   Therefore, this is a Nash Equilibrium.
+
+Work for proving [12,4,0] is Nash of 16 player game:\\
+\includegraphics[, width=12
+cm]{Photografia.png}
+
+
+
+Let $a_1$ or $a_2$ denote the utility by playing that action in the original mixture - this is the number which we are comparing the deviations to.  As can be seen by this work, there is no action change for any player that will cause a positive gain by deviating.  Therefore, this is a Nash Equilibrium.
+\end{enumerate}
+
+}
+
+
+
+
+
+\subsection*{Problem 2}
+
+In the Jupyter notebook \texttt{symmetric\_games.ipynb}, implement the functions to compute deviation payoffs and deviation gains for a symmetric mixture in a symmetric game.
+Then adapt your Nash local search code to find symmetric mixed-strategy Nash equilibria.
+
+
+
+\subsection*{Problem 3}
+
+In the Jupyter notebook \texttt{AGGs.ipynb}, implement the functions to compute deviation payoffs and deviation gains for a role-symmetric mixture in a symmetric game.
+Then adapt your Nash local search code to find symmetric mixed-strategy Nash equilibria.
+
+Note that the \texttt{ActionGraphGame} class has several updates relative to the one from class.
+In particular, you'll find the new attributes \texttt{self.role\_config\_indices} and \texttt{self.neighbor\_masks} helpful for operating over an action's neighborhood.
+The former provides a list of which indices in the configuration belong to each role;
+the latter provides a mask for which entries in a profile give probabilities for actions in the neighborhood.
+Some examples of how to use them have been provided.
+
+Also note that there are some extra functions to implement, but they should both be easy: \texttt{deviation\_payoffs} and \texttt{deviation\_gains}.
+Finally, the interface to the helper functions \texttt{config\_prob} and \texttt{repetitions} has changed.
+I think this one will be easier to use now that you have the above-attributes for help with indexing, but if you prefer the old interface, you may revert to it.
+
+\end{document}

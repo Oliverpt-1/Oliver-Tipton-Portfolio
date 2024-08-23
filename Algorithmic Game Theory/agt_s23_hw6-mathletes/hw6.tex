@@ -1,0 +1,103 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{clrscode3e}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{color}
+\usepackage[shortlabels]{enumitem}
+\usepackage{multicol,multirow}
+\usepackage{csquotes}
+\usepackage[super]{nth}
+
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepgfplotslibrary{ternary, units}
+\usetikzlibrary{decorations.pathmorphing, pgfplots.ternary, pgfplots.units}
+
+\setlength{\parskip}{2mm}
+\setlength{\parindent}{0mm}
+
+\newcommand{\titlebox}[3]{
+    \begin{center}
+        \framebox{
+            \vbox{
+            \hbox to \textwidth { #1 \hfill #3}
+            \vspace{-4mm}
+            \hbox to \textwidth {\hfill \Large \bf #2 \hfill}
+        }
+    }
+    \end{center}
+}
+
+\renewcommand*\arraystretch{1.5}
+
+\newcommand{\answer}[1]{
+\vspace{.5\baselineskip} \hrule \vspace{.5\baselineskip}
+#1
+\vspace{.5\baselineskip} \hrule \vspace{.5\baselineskip}
+}
+
+\begin{document}
+
+\titlebox{CSC 383, S'23}
+{Homework 6}
+{Due Mar. \nth{29}}
+
+\textbf{Directions:}
+
+Write your solutions using and \LaTeX.
+Then submit the files \texttt{hw6.tex} and \texttt{hw6.pdf}.
+
+
+
+
+
+\subsection*{Problem 1}
+
+Show that \textsc{NE-SW-opt} and \textsc{NE-U1-opt} are similarly difficult by proving $\textsc{NE-SW-opt} \le_p \textsc{NE-U1-opt}$ and $\textsc{NE-U1-opt} \le_p \textsc{NE-SW-opt}$.
+
+
+\answer{
+A. $\textsc{NE-SW-opt} \le_p \textsc{NE-U1-opt}$ \newline
+In Order to reduce this problem we would need to add a another player to the existing game. This player would have one action. The new Players payoffs would be the sum of all payoffs in that cell of the matrix. Doing this translation is $O(n)$. \newline
+
+B. $\textsc{NE-U1-opt} \le_p \textsc{NE-SW-opt}$ \newline
+In Order to reduce this problem we would need to add a another player to the existing game. This player would have one action. The players payoffs would be the negative sum of the payoffs for every player except player 1.   Doing this translation is $O(n)$. \newline
+
+
+}
+
+
+
+\subsection*{Problem 2}
+
+Prove that \textsc{NE-supp-dec} is $NP$-complete.
+
+\begin{enumerate}[(a)]
+\item Prove that \textsc{NE-supp-dec} $\in NP$ by showing that it is efficiently verifiable.
+\item Prove that every problem in $NP$ reduces to \textsc{NE-supp-dec}. Start from the fact that \textsc{NE-SW-dec} is $NP$-complete and provide a reduction to show \textsc{NE-SW-dec} $\le_p$ \textsc{NE-supp-dec}.
+\end{enumerate}
+
+
+\answer{
+
+A. \newline
+Given a NE and constant A. First we must verify the NE is a NE by making sure all players are best responding in the given NE. This step is $O(n)$. If the given NE is an NE, then we must verify that $prob(A) \neq 0$. This step is $O(1)$. Since verifying a certificate is $O(n)$ we can say that it is efficiently verifiable.
+
+B. \\
+There are p players in the game.  Here are the steps of the translation:\\
+1. Add a player (player p+1) and give this player 2 actions. O(1)\\
+2. For player p+1's action 1, player p+1's payoff = the sum of all other player's utilities (social welfare). O(n)\\
+3. For player p+1's action 2, player p+1's payoff = c (constant given).  O(n)\\
+
+Optimal:\\
+We know that this will give us an optimal solution because of what player p+1's choice tells us.  If we are given an instance of the problem where output should be yes, i.e. it is a NE, action a has non-zero probability and the total utility is at least c.  In this case, player p + 1 will choose action 1 because the social welfare is at least c.  Otherwise, if the social welfare is not at least c, then player p + 1 will choose action 2 since the payoffs will be higher for player p + 1.\\
+$ $\newline
+If player p+1 chooses action 1, therefore, we know that the action/distribution has a social welfare which is at least c and is a Nash equilibrium.\\
+If player p+1 chooses action 2, on the other hand, we know that this is not true.
+
+
+}
+
+
+\end{document}
