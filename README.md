@@ -7,12 +7,15 @@ My name is Oliver Tipton and I am a senior studying Computer Science at Davidson
 
 I have included the two Web3 projects that I have worked on.  Within each project is a readme file that outlines setup and what the project is meant to do.  The DAO is in progress and will be a part of the Davidson Blockchain Club that I will be starting on campus this fall.  The staking protocol is a mock to show my development skills and capabilities in developing DeFi applications.
 
+I also have included projects from my algorithmic game theory course, which consisted of writing algorithms and implementing them to solve complex games and find nash equilibria.  The code is partially written by the professor as these are homework assignments, however the algorithms themselves were implemented by me and two other students.
+
 My strongest languages:
 - Java
 - Python
+- C
 - Solidity
 - Rust
-- C
 
-In addition to the projects in this repository, I am in the process of building a Python trading bot that I plan to complete by December.  
+
+
 
