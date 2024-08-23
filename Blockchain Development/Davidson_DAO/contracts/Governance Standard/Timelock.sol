@@ -1,0 +1,1 @@
+//Proposals do not go in effect right away.  Gives holders time to get oute
