@@ -4,6 +4,7 @@ My name is Oliver Tipton and I am a senior studying Computer Science at Davidson
 
 
 `Portfolio`
+
 I have included the two Web3 projects that I have worked on.  Within each project is a readme file that outlines setup and what the project is meant to do.  The DAO is in progress and will be a part of the Davidson Blockchain Club that I will be starting on campus this fall.  The staking protocol is a mock to show my development skills and capabilities in developing DeFi applications.
 
 My strongest languages:
