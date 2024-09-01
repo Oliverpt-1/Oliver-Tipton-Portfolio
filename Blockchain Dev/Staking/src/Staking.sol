@@ -211,6 +211,10 @@ contract Staking is Ownable, ReentrancyGuard {
         emit RewardPaid(msg.sender, userRewards);
     }
 
+
+    //VIEW FUNCTIONS
+
+
     /**
      * @notice Calculates the pending rewards for a given account
      * @dev Uses the reward rate and staking duration to calculate rewards
@@ -252,6 +256,11 @@ contract Staking is Ownable, ReentrancyGuard {
 
         return rewardRate;
     }
+
+
+    // ADMIN CONTROLS
+
+
 
     /**
      * @notice Sets the end time for the staking period
