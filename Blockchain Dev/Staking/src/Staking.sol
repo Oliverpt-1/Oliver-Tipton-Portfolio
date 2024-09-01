@@ -45,38 +45,49 @@ import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeE
  * • Utilizes SafeERC20 for foolproof token transfers
  * • Precision-focused calculations to ensure accuracy
  */
-contract Staking is Ownable, ReentrancyGuard{
+
+/**
+ * @title Staking Protocol
+ * @author Oliver Tipton
+ * @notice A staking platform for ERC20 tokens with NFT-based account management
+ * @dev Implements advanced staking mechanics with built-in security features
+ *
+ * This contract allows users to stake ERC20 tokens, represented by unique NFTs,
+ * and earn rewards based on their staking amount and duration. It includes
+ * features for creating accounts, staking, withdrawing, and claiming rewards.
+ */
+ 
+contract Staking is Ownable, ReentrancyGuard {
     using SafeERC20 for ERC20Mock;
 
-    //Events
+    // Events
     event AccountCreated(address user, uint256 tokenId);
     event Staked(address user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 
-
-    //State Variables
-
-    ERC20Mock public immutable stakingToken; 
+    // State Variables
+    ERC20Mock public immutable stakingToken;
     ERC20Mock public immutable rewardToken;
     AccountNFT public immutable accountNFT;
 
-    uint256 public rewardRate;
     uint256 private nextTokenId = 1;
+    uint256 public stakingEndTime;
+    uint256 public rewardPool;
+    uint256 public totalStaked;
+    uint256 public lastUpdateTime;
+    uint256 public stakingStartTime;
 
-    //Constants
-
-    uint256 public constant ANNUAL_INTEREST_RATE = 15;
+    // Constants
     uint256 public constant PRECISION = 1e18;
-    uint256 public constant SECONDS_PER_YEAR = 365 * 86400;
 
-    struct accountBalance{
+    struct AccountBalance {
         uint256 stakeBalance;
         uint256 lastRewardTime;
+        uint256 stakedAt;
     }
 
-    mapping(uint256 tokenId => accountBalance) public users;
-    mapping(address user => bool ) public existingAccount;
+    mapping(uint256 tokenId => AccountBalance) public users;
 
     /**
      * @notice Contract constructor
@@ -85,133 +96,119 @@ contract Staking is Ownable, ReentrancyGuard{
      * @param _accountNFT Address of the NFT contract used for account representation
      * @param _owner Address of the contract owner
      */
-    constructor(address _stakingToken,
-        address _rewardToken,
-        address _accountNFT,
-        address _owner) Ownable(_owner){
-
+    constructor(address _stakingToken, address _rewardToken, address _accountNFT, address _owner)
+        Ownable(_owner)
+    {
         stakingToken = ERC20Mock(_stakingToken);
         rewardToken = ERC20Mock(_rewardToken);
         accountNFT = AccountNFT(_accountNFT);
-    
-        rewardRate = (ANNUAL_INTEREST_RATE * PRECISION) / (100 * SECONDS_PER_YEAR);
     }
 
     /**
      * @notice Creates a new staking account for a user
      * @dev Mints a new NFT to represent the user's account
-     * @param user Address of the user creating the account
      * @return tokenId The ID of the newly minted NFT
      */
-    function createStakerAccount(address user) public nonReentrant returns (uint256 tokenId) {
-        require(msg.sender == user, "Can't create accounts for other users");
-        require(!existingAccount[user], "Can't create multiple accounts");
+    function createStakerAccount() public returns (uint256 tokenId) {
+        require(accountNFT.getStakingTokenId(msg.sender) == 0, "Can't create multiple accounts");
 
-        accountNFT.mint(user, nextTokenId);
-        uint256 tokenId = nextTokenId;
-        users[tokenId].lastRewardTime = block.timestamp;
+        accountNFT.mint(msg.sender, nextTokenId);
+        tokenId = nextTokenId;
         nextTokenId++;
-        emit AccountCreated(user, tokenId);
 
-        return tokenId;
+        emit AccountCreated(msg.sender, tokenId);
     }
 
-
-   /**
+    /**
      * @notice Allows a user to stake tokens
      * @dev Creates a new account if the user doesn't have one
      * @param amount The amount of tokens to stake
      */
-    function stake(uint256 amount) external{
-        address user = msg.sender;
-        uint256 userTokenId;
+    function stake(uint256 amount) external nonReentrant {
+        uint256 userTokenId = accountNFT.getStakingTokenId(msg.sender);
 
+        require(userTokenId != 0, "User must have account to stake");
+        require(block.timestamp < stakingEndTime, "Staking period has ended");
 
-        if (existingAccount[msg.sender]){
-            userTokenId = accountNFT.getStakingTokenId(user);
-            accountBalance storage userAccount = users[userTokenId];
+        AccountBalance storage userAccount = users[userTokenId];
+        uint256 pendingRewards = getPendingRewards(userTokenId);
 
-            uint256 pendingRewards = getPendingRewards(userTokenId);
-            if(pendingRewards > 0){
-                rewardToken.safeTransfer(user, pendingRewards);
-                emit RewardPaid(user, pendingRewards);
-            }
-            
-            userAccount.stakeBalance += amount;
-            userAccount.lastRewardTime = block.timestamp;
+        if (pendingRewards > 0) {
+            rewardToken.safeTransfer(msg.sender, pendingRewards);
+            emit RewardPaid(msg.sender, pendingRewards);
         }
 
-        else{
-            userTokenId = createStakerAccount(user);
-            existingAccount[msg.sender] = true;
-            users[userTokenId].stakeBalance = amount;
-        }
+        userAccount.stakeBalance += amount;
+        totalStaked += amount;
+        userAccount.lastRewardTime = block.timestamp;
+        userAccount.stakedAt = block.timestamp;
 
-        stakingToken.safeTransferFrom(user, address(this), amount);
-        emit Staked(user, amount);
+        stakingToken.safeTransferFrom(msg.sender, address(this), amount);
+        emit Staked(msg.sender, amount);
     }
 
     /**
      * @notice Allows a user to withdraw staked tokens
      * @dev Transfers staked tokens and any accrued rewards to the user
-     * @param user Address of the user withdrawing tokens
+     * @param tokenId The NFT token ID representing the user's account
      * @param amount Amount of tokens to withdraw
      */
-    function withdrawUnderlying(address user, uint256 amount) external nonReentrant{
-        require(user == msg.sender, "Access Denied: Only Owner of account can withdraw");
+    function withdrawUnderlying(uint256 tokenId, uint256 amount) external nonReentrant {
         require(amount > 0, "Can't withdraw 0");
-        
-        uint256 tokenId = accountNFT.getStakingTokenId(user);
-
-        require(existingAccount[user], "Can only withdraw from existing account");
+        require(msg.sender == accountNFT.ownerOf(tokenId), "Can't withdraw from someone else's account");
         require(users[tokenId].stakeBalance >= amount, "You may not unstake more than you have in your account");
 
+        AccountBalance storage userAccount = users[tokenId];
+        uint256 userRewards = getPendingRewards(tokenId);
 
-        accountBalance storage userAccount = users[accountNFT.getStakingTokenId(user)];
+        userAccount.stakeBalance -= amount;
+        totalStaked -= amount;
 
-
-        if(amount == userAccount.stakeBalance){
-            userAccount.stakeBalance = 0;
-            uint256 userRewards = getPendingRewards(tokenId);
-
-            stakingToken.safeTransfer(user, amount);
-            rewardToken.safeTransfer(user, userRewards);
-            
+        if (userRewards > 0) {
+            rewardToken.safeTransfer(msg.sender, userRewards);
         }
-        else{
-            userAccount.stakeBalance -= amount;
-            
-            uint256 pendingRewards = getPendingRewards(tokenId);
 
-            if(pendingRewards > 0){
-                rewardToken.safeTransfer(user, pendingRewards);
-            }
-            stakingToken.safeTransfer(user, amount);
-        }
         userAccount.lastRewardTime = block.timestamp;
-        emit Withdrawn(user, amount);
+        stakingToken.safeTransfer(msg.sender, amount);
+
+        emit Withdrawn(msg.sender, amount);
+    }
+
+    /**
+     * @notice Allows a user to emergency withdraw while forfeiting available rewards
+     * @dev Transfers staked tokens to the user and updates the last reward time
+     * @param tokenId The NFT token ID representing the user's account
+     */
+    function emergencyWithdraw(uint256 tokenId) external nonReentrant {
+        require(msg.sender == accountNFT.ownerOf(tokenId), "Not owner");
+
+        AccountBalance storage userAccount = users[tokenId];
+        uint256 amount = userAccount.stakeBalance;
+        userAccount.stakeBalance = 0;
+        totalStaked -= amount;
+        stakingToken.safeTransfer(msg.sender, amount);
+        userAccount.lastRewardTime = block.timestamp;
+
+        emit Withdrawn(msg.sender, amount);
     }
 
     /**
      * @notice Allows a user to claim accrued rewards
      * @dev Transfers accrued rewards to the user and updates the last reward time
-     * @param user Address of the user claiming rewards
+     * @param tokenId The NFT token ID representing the user's account
      */
-    function claimRewards(address user) external nonReentrant{
-        require(user == msg.sender, "Access Denied: User must own account to claim rewards");
-        require(existingAccount[user] != false, "Uninitialized Account");
+    function claimRewards(uint256 tokenId) external nonReentrant {
+        require(msg.sender == accountNFT.ownerOf(tokenId), "Not owner");
 
-        //get user token Id and account
-        uint256 tokenId = accountNFT.getStakingTokenId(user);
-        accountBalance storage userAccount = users[tokenId];
-        
-        //get user Rewards and update last reward claim
+        AccountBalance storage userAccount = users[tokenId];
+
         uint256 userRewards = getPendingRewards(tokenId);
+        require(userRewards > 0, "No rewards to claim");
+
         userAccount.lastRewardTime = block.timestamp;
 
-
-        rewardToken.safeTransfer(user, userRewards);
-        emit RewardPaid(user, userRewards);
+        rewardToken.safeTransfer(msg.sender, userRewards);
+        emit RewardPaid(msg.sender, userRewards);
     }
 
     /**
@@ -221,11 +218,57 @@ contract Staking is Ownable, ReentrancyGuard{
      * @return The amount of pending rewards
      */
     function getPendingRewards(uint256 tokenId) public view returns (uint256) {
-        accountBalance storage user = users[tokenId];
+        AccountBalance storage user = users[tokenId];
+        if (totalStaked == 0) return 0;
 
-        
-        uint256 timeElapsed = block.timestamp - user.lastRewardTime;
-        uint256 rewardsPerToken = (timeElapsed * rewardRate * user.stakeBalance) / PRECISION;
-        return rewardsPerToken;
+        uint256 userStakingDuration = block.timestamp - user.lastRewardTime;
+        uint256 totalUserRewards = (getRewardRate(tokenId) * userStakingDuration) / PRECISION;
+
+        return totalUserRewards;
+    }
+
+    /**
+     * @notice Calculates the reward rate based on user amount staked and start time
+     * @dev Takes into account the user's stake amount and duration
+     * @param tokenId The NFT token ID representing the user's account
+     * @return The calculated reward rate for the user
+     */
+    function getRewardRate(uint256 tokenId) public view returns (uint256) {
+        AccountBalance storage user = users[tokenId];
+
+        uint256 totalStakingDuration = stakingEndTime - stakingStartTime;
+        if (totalStakingDuration == 0 || totalStaked == 0) {
+            return 0;
+        }
+
+        uint256 userStakingDuration = block.timestamp - user.stakedAt;
+        if (userStakingDuration > totalStakingDuration) {
+            userStakingDuration = totalStakingDuration;
+        }
+
+        uint256 userShareOfStake = (user.stakeBalance * PRECISION) / totalStaked;
+        uint256 userShareOfDuration = (userStakingDuration * PRECISION) / totalStakingDuration;
+        uint256 rewardRate = (rewardPool * userShareOfStake * userShareOfDuration) / (totalStakingDuration * PRECISION * PRECISION);
+
+        return rewardRate;
+    }
+
+    /**
+     * @notice Sets the end time for the staking period
+     * @dev Can only be called by the contract owner
+     * @param _totalTime The total duration of the staking period in seconds
+     */
+    function setStakingEndTime(uint256 _totalTime) external onlyOwner {
+        stakingEndTime = block.timestamp + _totalTime;
+        stakingStartTime = block.timestamp;
+    }
+
+    /**
+     * @notice Sets the total reward pool for the staking period
+     * @dev Can only be called by the contract owner
+     * @param _rewardPool The total amount of tokens to be distributed as rewards
+     */
+    function setRewardPool(uint256 _rewardPool) external onlyOwner {
+        rewardPool = _rewardPool;
     }
 }
