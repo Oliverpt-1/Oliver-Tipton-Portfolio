@@ -119,19 +119,30 @@ class WhaleTracker(commands.Bot):
         
         self.last_checked[wallet_address] = current_time
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes=1)  # or minutes=5 for 5-minute intervals
     async def track_whales(self):
         """Check whale wallets every minute"""
         try:
+            current_time = datetime.datetime.now()
+            print(f"\n[{current_time}] 🔍 Starting wallet check cycle...")
+            
             with open('whale_addresses.txt', 'r') as f:
-                whale_addresses = [addr.strip() for addr in f.readlines() if addr.strip()]
+                whale_addresses = [line.split(':')[1].strip() 
+                                for line in f.readlines() 
+                                if 'Wallet:' in line]
                 
+            print(f"📋 Found {len(whale_addresses)} wallets to monitor")
+            
             for address in whale_addresses:
-                await self.monitor_wallet(address)
-                await asyncio.sleep(1)  # Rate limiting between wallets
+                print(f"⚡ Checking wallet: {address[:8]}...{address[-6:]}")
+                response = self.get_balance_changes(address, self.last_checked.get(address, 0))
+                print(f"📡 Solscan API response received for {address[:8]}...")
+                await asyncio.sleep(1)
                 
+            print(f"✅ Completed check cycle at {datetime.datetime.now()}\n")
+                    
         except Exception as e:
-            print(f"Error in tracking loop: {e}")
+            print(f"❌ Error in tracking loop: {e}")
 
     @track_whales.before_loop
     async def before_tracking(self):
