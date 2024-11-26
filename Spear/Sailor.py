@@ -117,7 +117,7 @@ class WhaleTracker(commands.Bot):
         
         self.last_checked[wallet_address] = current_time
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes=5)
     async def track_whales(self):
         """Check whale wallets every minute"""
         try:
