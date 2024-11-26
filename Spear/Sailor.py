@@ -31,13 +31,6 @@ class WhaleTracker(commands.Bot):
         # Track last checked timestamps for each wallet
         self.last_checked = {}
 
-    def start_server():
-    PORT = int(os.getenv('PORT', 10000))
-    Handler = http.server.SimpleHTTPRequestHandler
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
-        print(f"Serving at port {PORT}")
-        httpd.serve_forever()
-
     async def setup_hook(self):
         # Start the tracking loop when the bot is ready
         self.track_whales.start()
@@ -126,7 +119,7 @@ class WhaleTracker(commands.Bot):
         
         self.last_checked[wallet_address] = current_time
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(minutes=1)
     async def track_whales(self):
         """Check whale wallets every minute"""
         try:
@@ -144,6 +137,13 @@ class WhaleTracker(commands.Bot):
     async def before_tracking(self):
         """Wait until the bot is ready before starting the tracking loop"""
         await self.wait_until_ready()
+
+def start_server():
+    PORT = int(os.getenv('PORT', 10000))
+    Handler = http.server.SimpleHTTPRequestHandler
+    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+        print(f"Serving at port {PORT}")
+        httpd.serve_forever()
 
 def main():
     # Create and run the bot in a separate thread
