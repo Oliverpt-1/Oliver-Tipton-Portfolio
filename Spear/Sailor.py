@@ -1,13 +1,17 @@
+import discord
+from discord.ext import commands, tasks
 import requests
-import time
 import datetime
 from typing import Dict, List
-from twilio.rest import Client
 import os
 from dotenv import load_dotenv
 
-class WhaleTracker:
+class WhaleTracker(commands.Bot):
     def __init__(self):
+        intents = discord.Intents.default()
+        intents.message_content = True
+        super().__init__(command_prefix='!', intents=intents)
+        
         # Load environment variables
         load_dotenv()
         
@@ -19,16 +23,15 @@ class WhaleTracker:
         }
         self.base_url = "https://pro-api.solscan.io/v2.0"
         
-        # Twilio configuration
-        self.twilio_client = Client(
-            os.getenv('TWILIO_ACCOUNT_SID'),
-            os.getenv('TWILIO_AUTH_TOKEN')
-        )
-        self.twilio_from_number = os.getenv('TWILIO_FROM_NUMBER')
-        self.twilio_to_number = os.getenv('TWILIO_TO_NUMBER')
+        # Discord channel configuration
+        self.DISCORD_CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID'))
         
         # Track last checked timestamps for each wallet
         self.last_checked = {}
+
+    async def setup_hook(self):
+        # Start the tracking loop when the bot is ready
+        self.track_whales.start()
 
     def get_balance_changes(self, wallet_address: str, since_timestamp: int) -> List[Dict]:
         """Get recent balance changes for a wallet"""
@@ -38,7 +41,7 @@ class WhaleTracker:
             'page': 1,
             'page_size': 20,
             'sort_by': 'block_time',
-            'sort_order': 'desc'  # Get most recent first
+            'sort_order': 'desc'
         }
         
         try:
@@ -47,7 +50,6 @@ class WhaleTracker:
             data = response.json()
             
             if data.get('success') and 'data' in data:
-                # Filter changes after since_timestamp
                 return [change for change in data['data'] 
                        if change['block_time'] > since_timestamp]
             
@@ -74,22 +76,22 @@ class WhaleTracker:
         
         return 0
 
-    def send_alert(self, message: str):
-        """Send SMS alert via Twilio"""
+    async def send_alert(self, message: str):
+        """Send Discord alert"""
         try:
-            self.twilio_client.messages.create(
-                body=message,
-                from_=self.twilio_from_number,
-                to=self.twilio_to_number
-            )
-            print(f"Alert sent: {message}")
+            channel = self.get_channel(self.DISCORD_CHANNEL_ID)
+            if channel:
+                await channel.send(message)
+                print(f"Alert sent: {message}")
+            else:
+                print("Could not find Discord channel")
         except Exception as e:
-            print(f"Error sending SMS alert: {e}")
+            print(f"Error sending Discord alert: {e}")
 
-    def monitor_wallet(self, wallet_address: str):
+    async def monitor_wallet(self, wallet_address: str):
         """Monitor a single wallet for significant changes"""
-        current_time = int(time.time())
-        last_check = self.last_checked.get(wallet_address, current_time - 300)  # Default to 5 mins ago
+        current_time = int(datetime.datetime.now().timestamp())
+        last_check = self.last_checked.get(wallet_address, current_time - 300)
         
         changes = self.get_balance_changes(wallet_address, last_check)
         
@@ -104,36 +106,40 @@ class WhaleTracker:
                 symbol = change.get('token_symbol', 'Unknown Token')
                 
                 message = (
-                    f"🐋 Whale Alert! 🐋\n"
-                    f"Wallet: {wallet_address[:8]}...{wallet_address[-6:]}\n"
-                    f"{direction.title()} {amount:.2f} {symbol}\n"
-                    f"Value: ${value_usd:,.2f}\n"
-                    f"Time: {datetime.datetime.fromtimestamp(change['block_time']).strftime('%Y-%m-%d %H:%M:%S')}"
+                    f"🐋 **Whale Alert!** 🐋\n"
+                    f"**Wallet:** {wallet_address[:8]}...{wallet_address[-6:]}\n"
+                    f"**Action:** {direction.title()} {amount:.2f} {symbol}\n"
+                    f"**Value:** ${value_usd:,.2f}\n"
+                    f"**Time:** {datetime.datetime.fromtimestamp(change['block_time']).strftime('%Y-%m-%d %H:%M:%S')}"
                 )
                 
-                self.send_alert(message)
+                await self.send_alert(message)
         
         self.last_checked[wallet_address] = current_time
 
-def main():
-    tracker = WhaleTracker()
-    
-    # Read whale addresses from a file
-    try:
-        with open('whale_addresses.txt', 'r') as f:
-            whale_addresses = [addr.strip() for addr in f.readlines() if addr.strip()]
-    except FileNotFoundError:
-        print("Please create whale_addresses.txt with one wallet address per line")
-        return
+    @tasks.loop(minutes=1)
+    async def track_whales(self):
+        """Check whale wallets every minute"""
+        try:
+            with open('whale_addresses.txt', 'r') as f:
+                whale_addresses = [addr.strip() for addr in f.readlines() if addr.strip()]
+                
+            for address in whale_addresses:
+                await self.monitor_wallet(address)
+                await asyncio.sleep(1)  # Rate limiting between wallets
+                
+        except Exception as e:
+            print(f"Error in tracking loop: {e}")
 
-    print(f"Starting whale tracker for {len(whale_addresses)} addresses...")
-    
-    while True:
-        for address in whale_addresses:
-            tracker.monitor_wallet(address)
-            time.sleep(1)  # Rate limiting between wallets
-        
-        time.sleep(60)  # Check every minute
+    @track_whales.before_loop
+    async def before_tracking(self):
+        """Wait until the bot is ready before starting the tracking loop"""
+        await self.wait_until_ready()
+
+def main():
+    # Create and run the bot
+    bot = WhaleTracker()
+    bot.run(os.getenv('DISCORD_TOKEN'))
 
 if __name__ == "__main__":
     main()
