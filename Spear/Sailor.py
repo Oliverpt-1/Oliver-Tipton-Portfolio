@@ -5,6 +5,8 @@ import datetime
 from typing import Dict, List
 import os
 from dotenv import load_dotenv
+import http.server
+import socketserver
 
 class WhaleTracker(commands.Bot):
     def __init__(self):
@@ -28,6 +30,13 @@ class WhaleTracker(commands.Bot):
         
         # Track last checked timestamps for each wallet
         self.last_checked = {}
+
+    def start_server():
+    PORT = int(os.getenv('PORT', 10000))
+    Handler = http.server.SimpleHTTPRequestHandler
+    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+        print(f"Serving at port {PORT}")
+        httpd.serve_forever()
 
     async def setup_hook(self):
         # Start the tracking loop when the bot is ready
@@ -137,9 +146,14 @@ class WhaleTracker(commands.Bot):
         await self.wait_until_ready()
 
 def main():
-    # Create and run the bot
+    # Create and run the bot in a separate thread
+    import threading
     bot = WhaleTracker()
-    bot.run(os.getenv('DISCORD_TOKEN'))
+    bot_thread = threading.Thread(target=bot.run, args=(os.getenv('DISCORD_TOKEN'),))
+    bot_thread.start()
+    
+    # Start the HTTP server
+    start_server()
 
 if __name__ == "__main__":
     main()
