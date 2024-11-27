@@ -139,8 +139,10 @@ class WhaleTracker(commands.Bot):
         try:
             print(f"\n[{datetime.datetime.now()}] 🔍 Starting wallet check cycle...")
             await self.send_alert("🔍 Checking wallets...")
-            
-            with open('Spear/wallet.txt', 'r') as f:
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            wallet_file = os.path.join(current_dir, 'wallet.txt')
+
+            with open(wallet_file, 'r') as f:
                 whale_addresses = [line.strip() for line in f.readlines() if line.strip()]
                 
             await self.send_alert(f"📋 Found {len(whale_addresses)} wallets to monitor")
