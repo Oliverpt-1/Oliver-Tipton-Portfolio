@@ -6,8 +6,8 @@ from typing import Dict, List
 import os
 from dotenv import load_dotenv
 import http.server
-import asyncio
 import socketserver
+import asyncio
 
 class WhaleTracker(commands.Bot):
     def __init__(self):
@@ -33,8 +33,12 @@ class WhaleTracker(commands.Bot):
         self.last_checked = {}
 
     async def setup_hook(self):
-        # Start the tracking loop when the bot is ready
-        self.track_whales.start()
+        print("🚀 Setup hook called...")
+        try:
+            self.track_whales.start()
+            print("✅ Tracking loop started!")
+        except Exception as e:
+            print(f"❌ ERROR STARTING TRACKING LOOP: {e}")
 
     def format_amount(self, amount, decimals, price_usd=None):
         """Convert raw amount to proper decimal value and USD if available"""
@@ -149,6 +153,7 @@ class WhaleTracker(commands.Bot):
     @tasks.loop(minutes=5)
     async def track_whales(self):
         """Check whale wallets every minute"""
+        print("🔄 TRACK_WHALES LOOP RUNNING")
         try:
             print(f"\n[{datetime.datetime.now()}] 🔍 Starting wallet check cycle...")
             
@@ -159,7 +164,6 @@ class WhaleTracker(commands.Bot):
             
             for address in whale_addresses:
                 await self.monitor_wallet(address)
-                await asyncio.sleep(1)  # Rate limiting between wallets
                 
             print(f"✅ Completed check cycle at {datetime.datetime.now()}\n")
                 
@@ -171,6 +175,13 @@ class WhaleTracker(commands.Bot):
         """Wait until the bot is ready before starting the tracking loop"""
         await self.wait_until_ready()
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("🤖 BOT IS READY AND CONNECTED TO DISCORD")
+        channel = self.get_channel(self.DISCORD_CHANNEL_ID)
+        if channel:
+            await channel.send("Bot is online and monitoring!")
+
 def start_server():
     PORT = int(os.getenv('PORT', 10000))
     Handler = http.server.SimpleHTTPRequestHandler
@@ -179,14 +190,9 @@ def start_server():
         httpd.serve_forever()
 
 def main():
-    # Create and run the bot in a separate thread
-    import threading
     bot = WhaleTracker()
-    bot_thread = threading.Thread(target=bot.run, args=(os.getenv('DISCORD_TOKEN'),))
-    bot_thread.start()
-    
-    # Start the HTTP server
-    start_server()
+    bot.run(os.getenv('DISCORD_TOKEN'))
 
 if __name__ == "__main__":
+    print("🚀 MAIN FUNCTION STARTING")
     main()
