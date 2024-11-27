@@ -89,19 +89,27 @@ class WhaleTracker(commands.Bot):
     async def monitor_wallet(self, wallet_address: str):
         """Monitor a single wallet for significant changes"""
         try:
+            await self.send_alert(f"👀 Checking wallet: {wallet_address[:8]}...")
             response = self.get_balance_changes(wallet_address)
+            await self.send_alert(f"📥 Got response for {wallet_address[:8]}: {response.get('success', False)}")
+            
             if response['success'] and 'data' in response:
                 transactions = response['data']
-                significant_txs = []
+                await self.send_alert(f"📊 Found {len(transactions)} transactions for {wallet_address[:8]}")
+                recent_txs = []
                 
                 for tx in transactions:
                     tx_time = datetime.datetime.fromtimestamp(tx.get('block_time', 0))
+                    current_time = datetime.datetime.now()
+                    time_diff = current_time - tx_time
                     
-                    # Check if transaction is from the last minute
-                    if tx_time > datetime.datetime.now() - datetime.timedelta(minutes=5):
+                    await self.send_alert(f"⏰ Transaction time: {tx_time}, Time diff: {time_diff.total_seconds()/60:.2f} minutes")
+                    
+                    # Check if transaction is from the last 5 minutes
+                    if tx_time > current_time - datetime.timedelta(minutes=5):
                         raw_amount = float(tx.get('amount', 0))
-                        token_decimals = tx.get('token_decimals', 9)  # Use API's token_decimals, fallback to 9
-                        token_address = tx.get('token_address')
+                        token_decimals = tx.get('token_decimals', 9)
+                        token_address = tx.get('token_address', 'Unknown')
                         
                         # Get current token price
                         price_usd = self.get_token_price(token_address) if token_address else 0
@@ -110,26 +118,27 @@ class WhaleTracker(commands.Bot):
                         actual_amount = raw_amount / (10 ** token_decimals)
                         usd_value = actual_amount * price_usd
                         
-                        # Only add transactions worth more than $500
-                        
-                        significant_txs.append((actual_amount, usd_value, tx_time, token_address))
+                        recent_txs.append((actual_amount, usd_value, tx_time, token_address))
                 
-                if significant_txs:
+                if recent_txs:
+                    await self.send_alert(f"✨ Found {len(recent_txs)} recent transactions for {wallet_address[:8]}")
                     # Sort by USD value, largest first
-                    significant_txs.sort(key=lambda x: x[1], reverse=True)
+                    recent_txs.sort(key=lambda x: x[1], reverse=True)
                     
-                    for amount, usd_value, tx_time in significant_txs:
+                    for amount, usd_value, tx_time, token_address in recent_txs:
                         message = (
-                            f"🐋 **Whale Alert!** 🐋\n"
+                            f"💰 **Transaction Alert** 💰\n"
                             f"**Wallet:** {wallet_address[:8]}...{wallet_address[-6:]}\n"
                             f"**Token:** {token_address}\n"
                             f"**Amount:** {amount:.4f} (USD: ${usd_value:.2f})\n"
                             f"**Time:** {tx_time.strftime('%Y-%m-%d %H:%M:%S')}"
                         )
                         await self.send_alert(message)
+                else:
+                    await self.send_alert(f"😴 No recent transactions found for {wallet_address[:8]}")
             
         except Exception as e:
-            print(f"Error monitoring wallet {wallet_address}: {e}")
+            await self.send_alert(f"❌ Error monitoring wallet {wallet_address}: {e}")
 
     @tasks.loop(minutes=5)
     async def track_whales(self):
