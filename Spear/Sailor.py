@@ -143,7 +143,7 @@ class WhaleTracker(commands.Bot):
             with open('Spear/wallet.txt', 'r') as f:
                 whale_addresses = [line.strip() for line in f.readlines() if line.strip()]
                 
-            print(f"📋 Found {len(whale_addresses)} wallets to monitor")
+            await self.send_alert(f"📋 Found {len(whale_addresses)} wallets to monitor")
             
             for address in whale_addresses:
                 await self.monitor_wallet(address)
