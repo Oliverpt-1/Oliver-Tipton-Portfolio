@@ -8,8 +8,6 @@ from dotenv import load_dotenv
 import http.server
 import socketserver
 import asyncio
-import logging
-import traceback
 
 class WhaleTracker(commands.Bot):
     def __init__(self):
@@ -37,7 +35,7 @@ class WhaleTracker(commands.Bot):
             print(f"❌ ERROR STARTING TRACKING LOOP: {e}")
 
     def get_balance_changes(self, wallet_address: str) -> Dict:
-        """Enhanced balance changes retrieval with comprehensive debugging"""
+        """Get recent balance changes for a wallet"""
         endpoint = f"{self.base_url}/account/balance_change"
         params = {
             'address': wallet_address,
@@ -48,55 +46,14 @@ class WhaleTracker(commands.Bot):
         }
         
         try:
-            # Detailed logging of API call parameters
-            print(f"🔍 API Call Details:")
-            print(f"Endpoint: {endpoint}")
-            print(f"Wallet Address: {wallet_address}")
-            print(f"Headers: {self.headers}")
-            print(f"Params: {params}")
-
-            # Make the API call
+            print(f"Making API call to Solscan for {wallet_address[:8]}...")
             response = requests.get(endpoint, headers=self.headers, params=params)
-            
-            # Log full response details
-            print(f"📡 API Response:")
-            print(f"Status Code: {response.status_code}")
-            print(f"Response Headers: {response.headers}")
-            
-            # Log response content for debugging
-            try:
-                response_json = response.json()
-                print(f"Response JSON (first 500 chars): {str(response_json)[:500]}")
-            except ValueError:
-                print(f"Response Text (first 500 chars): {response.text[:500]}")
-            
-            # Comprehensive error checking
-            if response.status_code == 200:
-                return response.json()
-            else:
-                print(f"❌ API Error Details:")
-                print(f"Status Code: {response.status_code}")
-                print(f"Full Response Text: {response.text}")
-                return {"status": "error", "code": response.status_code, "message": response.text}
+            response.raise_for_status()
+            return response.json()
                 
-        except requests.exceptions.RequestException as req_error:
-            # Network-related errors
-            print(f"🚨 Network Request Error: {req_error}")
-            print(f"Traceback: {traceback.format_exc()}")
-            return {
-                "status": "network_error", 
-                "message": str(req_error),
-                "traceback": traceback.format_exc()
-            }
         except Exception as e:
-            # Catch-all for any other unexpected errors
-            print(f"🔥 Unexpected Error: {e}")
-            print(f"Traceback: {traceback.format_exc()}")
-            return {
-                "status": "unexpected_error", 
-                "message": str(e),
-                "traceback": traceback.format_exc()
-            }
+            print(f"API Error: {e}")
+            return {"status": "error", "message": str(e)}
 
     async def send_alert(self, message: str):
         """Send Discord alert"""
@@ -111,7 +68,7 @@ class WhaleTracker(commands.Bot):
             print(f"Error sending Discord alert: {e}")
 
     def get_token_price(self, token_address: str) -> float:
-        """Enhanced token price retrieval with comprehensive debugging"""
+        """Get token price from Solscan"""
         endpoint = f"{self.base_url}/token/price"
         today = datetime.datetime.now().strftime('%Y%m%d')
 
@@ -121,33 +78,12 @@ class WhaleTracker(commands.Bot):
         }
         
         try:
-            # Detailed logging of price API call
-            print(f"💰 Token Price API Call:")
-            print(f"Endpoint: {endpoint}")
-            print(f"Token Address: {token_address}")
-            print(f"Date: {today}")
-            print(f"Params: {params}")
-
             response = requests.get(endpoint, headers=self.headers, params=params)
-            
-            # Log response details
-            print(f"📊 Price API Response:")
-            print(f"Status Code: {response.status_code}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                print(f"Price Data: {data}")
-                return data['data'][0]['price'] if data.get('data') else 0
-
-            # Log error response
-            print(f"❌ Price API Error:")
-            print(f"Status Code: {response.status_code}")
-            print(f"Response Text: {response.text}")
-            
-            return 0
+            response.raise_for_status()
+            data = response.json()
+            return data['data'][0]['price']
         except Exception as e:
-            print(f"🚨 Token Price Error: {e}")
-            print(f"Traceback: {traceback.format_exc()}")
+            print(f"Error getting token price: {e}")
             return 0
 
     async def monitor_wallet(self, wallet_address: str):
@@ -155,7 +91,7 @@ class WhaleTracker(commands.Bot):
         try:
             response = self.get_balance_changes(wallet_address)
             
-            if response.get('success') and 'data' in response:
+            if response['success'] and 'data' in response:
                 transactions = response['data']
                 significant_txs = []
                 
@@ -163,7 +99,7 @@ class WhaleTracker(commands.Bot):
                     tx_time = datetime.datetime.fromtimestamp(tx.get('block_time', 0))
                     
                     # Check if transaction is from the last minute
-                    if tx_time > datetime.datetime.now() - datetime.timedelta(minutes=1):
+                    if tx_time > datetime.datetime.now() - datetime.timedelta(minutes=5):
                         raw_amount = float(tx.get('amount', 0))
                         token_decimals = tx.get('token_decimals', 9)  # Use API's token_decimals, fallback to 9
                         token_address = tx.get('token_address')
