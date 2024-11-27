@@ -145,6 +145,7 @@ class WhaleTracker(commands.Bot):
         print("🔄 TRACK_WHALES LOOP RUNNING")
         try:
             print(f"\n[{datetime.datetime.now()}] 🔍 Starting wallet check cycle...")
+            await self.send_alert("🔍 Checking wallets...")
             
             with open('Spear/wallet.txt', 'r') as f:
                 whale_addresses = [line.strip() for line in f.readlines() if line.strip()]
