@@ -149,7 +149,7 @@ class WhaleTracker(commands.Bot):
             for address in whale_addresses:
                 await self.monitor_wallet(address)
                 
-            await self.send_alert(f"✅ Completed check cycle at {datetime.datetime.now()}\n"))
+            await self.send_alert(f"✅ Completed check cycle at {datetime.datetime.now()}\n")
                 
         except Exception as e:
             print(f"❌ Error in tracking loop: {e}")
