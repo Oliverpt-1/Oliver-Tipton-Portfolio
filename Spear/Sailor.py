@@ -25,9 +25,6 @@ class WhaleTracker(commands.Bot):
         
         # Discord channel configuration
         self.DISCORD_CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID'))
-        
-        # Track last checked timestamps for each wallet
-        self.last_checked = {}
 
     async def setup_hook(self):
         print("🚀 Setup hook called...")
@@ -36,14 +33,6 @@ class WhaleTracker(commands.Bot):
             print("✅ Tracking loop started!")
         except Exception as e:
             print(f"❌ ERROR STARTING TRACKING LOOP: {e}")
-
-    def format_amount(self, amount, decimals, price_usd=None):
-        """Convert raw amount to proper decimal value and USD if available"""
-        actual_amount = float(amount) / (10 ** decimals)
-        if price_usd:
-            usd_value = actual_amount * price_usd
-            return f"{actual_amount:.4f} (${usd_value:.2f})", usd_value
-        return f"{actual_amount:.4f}", None
 
     def get_balance_changes(self, wallet_address: str) -> Dict:
         """Get recent balance changes for a wallet"""
@@ -85,16 +74,20 @@ class WhaleTracker(commands.Bot):
 
     def get_token_price(self, token_address: str) -> float:
         """Get token price from Solscan"""
-        endpoint = f"{self.base_url}/token/meta"
+        endpoint = f"{self.base_url}/token/price"
+        today = datetime.datetime.now().strftime('%Y%m%d')
+
         params = {
-            'token': token_address
+            'address': token_address,
+            'time': [today]
         }
         
         try:
             response = requests.get(endpoint, headers=self.headers, params=params)
             if response.status_code == 200:
                 data = response.json()
-                return data.get('data', {}).get('price_usd', 0)
+                return data['data'][0]['price']
+
             return 0
         except Exception as e:
             print(f"Error getting token price: {e}")
@@ -113,36 +106,35 @@ class WhaleTracker(commands.Bot):
                     tx_time = datetime.datetime.fromtimestamp(tx.get('block_time', 0))
                     
                     # Check if transaction is from the last minute
-                    if tx_time > datetime.datetime.fromtimestamp(self.last_checked.get(wallet_address, 0)):
+                    if tx_time > datetime.datetime.now() - datetime.timedelta(minutes=1):
                         raw_amount = float(tx.get('amount', 0))
-                        decimals = tx.get('decimals', 9)  # default to 9 for SOL
-                        token = tx.get('token_symbol', 'Unknown')
+                        token_decimals = tx.get('token_decimals', 9)  # Use API's token_decimals, fallback to 9
                         token_address = tx.get('token_address')
                         
                         # Get current token price
                         price_usd = self.get_token_price(token_address) if token_address else 0
                         
-                        formatted_amount, usd_value = self.format_amount(raw_amount, decimals, price_usd)
+                        # Calculate actual amount and USD value
+                        actual_amount = raw_amount / (10 ** token_decimals)
+                        usd_value = actual_amount * price_usd
                         
                         # Only add transactions worth more than $500
-                        if usd_value and abs(usd_value) > 500:
-                            significant_txs.append((formatted_amount, token, tx_time, abs(usd_value)))
+                        if usd_value > 10:
+                            significant_txs.append((actual_amount, usd_value, tx_time, token_address))
                 
                 if significant_txs:
                     # Sort by USD value, largest first
-                    significant_txs.sort(key=lambda x: x[3], reverse=True)
+                    significant_txs.sort(key=lambda x: x[1], reverse=True)
                     
-                    for amount, token, tx_time, usd_value in significant_txs:
+                    for amount, usd_value, tx_time in significant_txs:
                         message = (
                             f"🐋 **Whale Alert!** 🐋\n"
                             f"**Wallet:** {wallet_address[:8]}...{wallet_address[-6:]}\n"
-                            f"**Amount:** {amount} {token}\n"
+                            f"**Token:** {token_address}\n"
+                            f"**Amount:** {amount:.4f} (USD: ${usd_value:.2f})\n"
                             f"**Time:** {tx_time.strftime('%Y-%m-%d %H:%M:%S')}"
                         )
                         await self.send_alert(message)
-            
-            # Update last checked time
-            self.last_checked[wallet_address] = int(datetime.datetime.now().timestamp())
             
         except Exception as e:
             print(f"Error monitoring wallet {wallet_address}: {e}")
