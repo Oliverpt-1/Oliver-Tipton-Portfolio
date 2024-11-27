@@ -35,7 +35,15 @@ class WhaleTracker(commands.Bot):
         # Start the tracking loop when the bot is ready
         self.track_whales.start()
 
-    def get_balance_changes(self, wallet_address: str, since_timestamp: int) -> List[Dict]:
+    def format_amount(self, amount, decimals, price_usd=None):
+        """Convert raw amount to proper decimal value and USD if available"""
+        actual_amount = float(amount) / (10 ** decimals)
+        if price_usd:
+            usd_value = actual_amount * price_usd
+            return f"{actual_amount:.4f} (${usd_value:.2f})", usd_value
+        return f"{actual_amount:.4f}", None
+
+    def get_balance_changes(self, wallet_address: str) -> Dict:
         """Get recent balance changes for a wallet"""
         endpoint = f"{self.base_url}/account/balance_change"
         params = {
@@ -47,36 +55,19 @@ class WhaleTracker(commands.Bot):
         }
         
         try:
+            print(f"Making API call to Solscan for {wallet_address[:8]}...")
             response = requests.get(endpoint, headers=self.headers, params=params)
-            response.raise_for_status()
-            data = response.json()
+            print(f"API Status Code: {response.status_code}")
             
-            if data.get('success') and 'data' in data:
-                return [change for change in data['data'] 
-                       if change['block_time'] > since_timestamp]
-            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                print(f"API Error Response: {response.text}")
+                return {"status": "error", "code": response.status_code}
+                
         except Exception as e:
-            print(f"Error fetching balance changes for {wallet_address}: {e}")
-        
-        return []
-
-    def get_token_price(self, token_address: str) -> float:
-        """Get current token price"""
-        endpoint = f"{self.base_url}/token/meta"
-        params = {'address': token_address}
-        
-        try:
-            response = requests.get(endpoint, headers=self.headers, params=params)
-            response.raise_for_status()
-            data = response.json()
-            
-            if data.get('success') and 'data' in data:
-                return float(data['data'].get('price', 0))
-            
-        except Exception as e:
-            print(f"Error fetching token price for {token_address}: {e}")
-        
-        return 0
+            print(f"API Error: {e}")
+            return {"status": "error", "message": str(e)}
 
     async def send_alert(self, message: str):
         """Send Discord alert"""
@@ -90,57 +81,87 @@ class WhaleTracker(commands.Bot):
         except Exception as e:
             print(f"Error sending Discord alert: {e}")
 
+    def get_token_price(self, token_address: str) -> float:
+        """Get token price from Solscan"""
+        endpoint = f"{self.base_url}/token/meta"
+        params = {
+            'token': token_address
+        }
+        
+        try:
+            response = requests.get(endpoint, headers=self.headers, params=params)
+            if response.status_code == 200:
+                data = response.json()
+                return data.get('data', {}).get('price_usd', 0)
+            return 0
+        except Exception as e:
+            print(f"Error getting token price: {e}")
+            return 0
+
     async def monitor_wallet(self, wallet_address: str):
         """Monitor a single wallet for significant changes"""
-        current_time = int(datetime.datetime.now().timestamp())
-        last_check = self.last_checked.get(wallet_address, current_time - 300)
-        
-        changes = self.get_balance_changes(wallet_address, last_check)
-        
-        for change in changes:
-            token_address = change['token_address']
-            amount = abs(float(change['amount'])) / (10 ** change['token_decimals'])
-            price = self.get_token_price(token_address)
-            value_usd = amount * price
+        try:
+            response = self.get_balance_changes(wallet_address)
             
-            if value_usd >= 1000:  # Alert threshold
-                direction = "bought" if change['change_type'] == 'inc' else "sold"
-                symbol = change.get('token_symbol', 'Unknown Token')
+            if response.get('success') and 'data' in response:
+                transactions = response['data']
+                significant_txs = []
                 
-                message = (
-                    f"🐋 **Whale Alert!** 🐋\n"
-                    f"**Wallet:** {wallet_address[:8]}...{wallet_address[-6:]}\n"
-                    f"**Action:** {direction.title()} {amount:.2f} {symbol}\n"
-                    f"**Value:** ${value_usd:,.2f}\n"
-                    f"**Time:** {datetime.datetime.fromtimestamp(change['block_time']).strftime('%Y-%m-%d %H:%M:%S')}"
-                )
+                for tx in transactions:
+                    tx_time = datetime.datetime.fromtimestamp(tx.get('block_time', 0))
+                    
+                    # Check if transaction is from the last minute
+                    if tx_time > datetime.datetime.fromtimestamp(self.last_checked.get(wallet_address, 0)):
+                        raw_amount = float(tx.get('amount', 0))
+                        decimals = tx.get('decimals', 9)  # default to 9 for SOL
+                        token = tx.get('token_symbol', 'Unknown')
+                        token_address = tx.get('token_address')
+                        
+                        # Get current token price
+                        price_usd = self.get_token_price(token_address) if token_address else 0
+                        
+                        formatted_amount, usd_value = self.format_amount(raw_amount, decimals, price_usd)
+                        
+                        # Only add transactions worth more than $500
+                        if usd_value and abs(usd_value) > 500:
+                            significant_txs.append((formatted_amount, token, tx_time, abs(usd_value)))
                 
-                await self.send_alert(message)
-        
-        self.last_checked[wallet_address] = current_time
+                if significant_txs:
+                    # Sort by USD value, largest first
+                    significant_txs.sort(key=lambda x: x[3], reverse=True)
+                    
+                    for amount, token, tx_time, usd_value in significant_txs:
+                        message = (
+                            f"🐋 **Whale Alert!** 🐋\n"
+                            f"**Wallet:** {wallet_address[:8]}...{wallet_address[-6:]}\n"
+                            f"**Amount:** {amount} {token}\n"
+                            f"**Time:** {tx_time.strftime('%Y-%m-%d %H:%M:%S')}"
+                        )
+                        await self.send_alert(message)
+            
+            # Update last checked time
+            self.last_checked[wallet_address] = int(datetime.datetime.now().timestamp())
+            
+        except Exception as e:
+            print(f"Error monitoring wallet {wallet_address}: {e}")
 
-    @tasks.loop(minutes=1)  # or minutes=5 for 5-minute intervals
+    @tasks.loop(minutes=5)
     async def track_whales(self):
         """Check whale wallets every minute"""
         try:
-            current_time = datetime.datetime.now()
-            print(f"\n[{current_time}] 🔍 Starting wallet check cycle...")
+            print(f"\n[{datetime.datetime.now()}] 🔍 Starting wallet check cycle...")
             
-            with open('whale_addresses.txt', 'r') as f:
-                whale_addresses = [line.split(':')[1].strip() 
-                                for line in f.readlines() 
-                                if 'Wallet:' in line]
+            with open('Spear/wallet.txt', 'r') as f:
+                whale_addresses = [line.strip() for line in f.readlines() if line.strip()]
                 
             print(f"📋 Found {len(whale_addresses)} wallets to monitor")
             
             for address in whale_addresses:
-                print(f"⚡ Checking wallet: {address[:8]}...{address[-6:]}")
-                response = self.get_balance_changes(address, self.last_checked.get(address, 0))
-                print(f"📡 Solscan API response received for {address[:8]}...")
-                await asyncio.sleep(1)
+                await self.monitor_wallet(address)
+                await asyncio.sleep(1)  # Rate limiting between wallets
                 
             print(f"✅ Completed check cycle at {datetime.datetime.now()}\n")
-                    
+                
         except Exception as e:
             print(f"❌ Error in tracking loop: {e}")
 
