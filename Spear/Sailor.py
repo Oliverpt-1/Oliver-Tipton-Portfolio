@@ -90,7 +90,6 @@ class WhaleTracker(commands.Bot):
         """Monitor a single wallet for significant changes"""
         try:
             response = self.get_balance_changes(wallet_address)
-            await self.send_alert("what up I'm here now")
             if response['success'] and 'data' in response:
                 transactions = response['data']
                 significant_txs = []
@@ -150,7 +149,7 @@ class WhaleTracker(commands.Bot):
             for address in whale_addresses:
                 await self.monitor_wallet(address)
                 
-            print(f"✅ Completed check cycle at {datetime.datetime.now()}\n")
+            await self.send_alert(f"✅ Completed check cycle at {datetime.datetime.now()}\n"))
                 
         except Exception as e:
             print(f"❌ Error in tracking loop: {e}")
