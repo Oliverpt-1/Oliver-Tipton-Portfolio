@@ -15,9 +15,6 @@ class WhaleTracker(commands.Bot):
         intents.message_content = True
         super().__init__(command_prefix='!', intents=intents)
         
-        # Load environment variables
-        load_dotenv()
-        
         # Solscan configuration
         self.solscan_api_key = os.getenv('SOLSCAN_API_KEY')
         self.headers = {
@@ -190,6 +187,10 @@ def start_server():
         httpd.serve_forever()
 
 def main():
+    import threading
+    server_thread = threading.Thread(target=start_server)
+    server_thread.daemon = True  # This ensures the thread closes when the main program exits
+    server_thread.start()
     bot = WhaleTracker()
     bot.run(os.getenv('DISCORD_TOKEN'))
 
