@@ -90,7 +90,6 @@ class WhaleTracker(commands.Bot):
         """Monitor a single wallet for significant changes"""
         try:
             response = self.get_balance_changes(wallet_address)
-            await self.send_alert("what up I'm here now")
             if response['success'] and 'data' in response:
                 transactions = response['data']
                 significant_txs = []
