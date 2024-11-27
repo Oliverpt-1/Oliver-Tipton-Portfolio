@@ -74,7 +74,7 @@ class WhaleTracker(commands.Bot):
 
         params = {
             'address': token_address,
-            'time': [today]
+            'time': today
         }
         
         try:
