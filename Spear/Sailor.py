@@ -6,6 +6,7 @@ from typing import Dict, List
 import os
 from dotenv import load_dotenv
 import http.server
+import asyncio
 import socketserver
 
 class WhaleTracker(commands.Bot):
