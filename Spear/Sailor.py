@@ -104,15 +104,18 @@ class WhaleTracker(commands.Bot):
                         raw_amount = float(tx.get('amount', 0))
                         token_decimals = tx.get('token_decimals', 9)
                         token_address = tx.get('token_address', 'Unknown')
+                        if token_address == 'So11111111111111111111111111111111111111111':
+                            continue
                         
+    
                         # Get current token price
                         price_usd = self.get_token_price(token_address) if token_address else 0
                         
                         # Calculate actual amount and USD value
                         actual_amount = raw_amount / (10 ** token_decimals)
                         usd_value = actual_amount * price_usd
-                        
-                        recent_txs.append((actual_amount, usd_value, tx_time, token_address))
+                        if usd_value > 250:
+                            recent_txs.append((actual_amount, usd_value, tx_time, token_address))
                 
                 if recent_txs:
                     # Sort by USD value, largest first
