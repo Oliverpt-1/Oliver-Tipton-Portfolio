@@ -135,6 +135,7 @@ class WhaleTracker(commands.Bot):
                         await self.send_alert(f"DEBUG Step 3:\nRaw price_usd: {price_usd}")
                         usd_value = actual_amount * price_usd
                         await self.send_alert(f"DEBUG Step 4:\nFinal USD value: {usd_value}")
+                        await self.send_alert(f"DEBUG Step 5:\nToken name: {token_name}")
                         if usd_value > 1000:
                             recent_txs.append((actual_amount, usd_value, tx_time, token_address))
                 
@@ -148,12 +149,9 @@ class WhaleTracker(commands.Bot):
                             f"**Wallet:** {wallet_address}\n"
                             f"**Wallet Name:** {wallet_name}\n"
                             f"**Token:** {token_address}\n"
-                            f"**Raw Amount:** {raw_amount}\n"
-                            f"**Token Decimals:** {token_decimals}\n"
-                            f"**Calculated Amount:** {actual_amount:.4f}\n"
-                            f"**Raw Price:** {price_usd}\n"
-                            f"**USD Value:** ${usd_value:.2f}\n"
                             f"**Token Name:** {token_name}\n"
+                            f"**Amount:** {amount:.4f}\n"
+                            f"**USD Value:** ${usd_value:.2f}\n"
                             f"**Time:** {tx_time.strftime('%Y-%m-%d %H:%M:%S')}"
                         )
                         await self.send_alert(message)
