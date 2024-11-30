@@ -130,8 +130,6 @@ class WhaleTracker(commands.Bot):
                             f"**Time:** {tx_time.strftime('%Y-%m-%d %H:%M:%S')}"
                         )
                         await self.send_alert(message)
-                else:
-                    await self.send_alert(f"😴 No recent transactions found for {wallet_address[:8]}")
             
         except Exception as e:
             await self.send_alert(f"❌ Error monitoring wallet {wallet_address}: {e}")
