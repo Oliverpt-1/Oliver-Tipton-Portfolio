@@ -132,19 +132,19 @@ class WhaleTracker(commands.Bot):
                         actual_amount = raw_amount / (10 ** token_decimals)
                         usd_value = actual_amount * price_usd
                         if usd_value > 1000:
-                            recent_txs.append((actual_amount, usd_value, tx_time, token_address))
+                            recent_txs.append((actual_amount, usd_value, tx_time, token_address, token_name))
                 
                 if recent_txs:
                     # Sort by USD value, largest first
                     recent_txs.sort(key=lambda x: x[1], reverse=True)
                     
-                    for amount, usd_value, tx_time, token_address in recent_txs:
+                    for amount, usd_value, tx_time, token_address, name in recent_txs:
                         message = (
                             f"💰 **Transaction Alert** 💰\n"
                             f"**Wallet:** {wallet_address}\n"
                             f"**Wallet Name:** {wallet_name}\n"
                             f"**Token:** {token_address}\n"
-                            f"**Token Name:** {token_name}\n"
+                            f"**Token Name:** {name}\n"
                             f"**Amount:** {amount:.4f}\n"
                             f"**USD Value:** ${usd_value:.2f}\n"
                             f"**Time:** {tx_time.strftime('%Y-%m-%d %H:%M:%S')}"
