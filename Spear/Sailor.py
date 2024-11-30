@@ -124,15 +124,13 @@ class WhaleTracker(commands.Bot):
                         if token_address == 'So11111111111111111111111111111111111111111':
                             continue
                         
-
+    
                         # Get current token price
                         price_usd = self.get_token_price(token_address) if token_address else 0
                         
                         # Calculate actual amount and USD value
                         actual_amount = raw_amount / (10 ** token_decimals)
-
                         usd_value = actual_amount * price_usd
-
                         if usd_value > 1000:
                             recent_txs.append((actual_amount, usd_value, tx_time, token_address))
                 
@@ -146,7 +144,11 @@ class WhaleTracker(commands.Bot):
                             f"**Wallet:** {wallet_address}\n"
                             f"**Wallet Name:** {wallet_name}\n"
                             f"**Token:** {token_address}\n"
-                            f"**Amount:** {amount:.4f} (USD: ${usd_value:.2f})\n"
+                            f"**Raw Amount:** {raw_amount}\n"
+                            f"**Token Decimals:** {token_decimals}\n"
+                            f"**Calculated Amount:** {actual_amount:.4f}\n"
+                            f"**Raw Price:** {price_usd}\n"
+                            f"**USD Value:** ${usd_value:.2f}\n"
                             f"**Token Name:** {token_name}\n"
                             f"**Time:** {tx_time.strftime('%Y-%m-%d %H:%M:%S')}"
                         )
