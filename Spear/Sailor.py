@@ -167,7 +167,7 @@ class WhaleTracker(commands.Bot):
                 whale_addresses = []
                 for line in f:
                     name, address = line.strip().split(':', 1)
-                    whale_addresses.append((name.strip(), address.strip()))
+                    whale_addresses.append((address.strip(),name.strip()))
 
             for address, name in whale_addresses:
                 await self.monitor_wallet(address, name)
