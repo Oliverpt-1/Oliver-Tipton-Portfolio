@@ -86,6 +86,22 @@ class WhaleTracker(commands.Bot):
             print(f"Error getting token price: {e}")
             return 0
 
+    def get_token_name(self, token_address: str) -> str:
+        """Get token name from Solscan"""
+        endpoint = f"{self.base_url}/token/meta"
+        params = {
+            'address': token_address
+        }
+
+        try:
+            response = requests.get(endpoint, headers=self.headers, params=params)
+            response.raise_for_status()
+            return response.json()['data']['name']
+        except Exception as e:
+            print(f"Error getting token name: {e}")
+            return "Unknown"
+
+
     async def monitor_wallet(self, wallet_address: str):
         """Monitor a single wallet for significant changes"""
         try:
@@ -104,6 +120,7 @@ class WhaleTracker(commands.Bot):
                         raw_amount = float(tx.get('amount', 0))
                         token_decimals = tx.get('token_decimals', 9)
                         token_address = tx.get('token_address', 'Unknown')
+                        token_name = self.get_token_name(token_address)
                         if token_address == 'So11111111111111111111111111111111111111111':
                             continue
                         
@@ -127,9 +144,12 @@ class WhaleTracker(commands.Bot):
                             f"**Wallet:** {wallet_address}\n"
                             f"**Token:** {token_address}\n"
                             f"**Amount:** {amount:.4f} (USD: ${usd_value:.2f})\n"
+                            f"**Token Name:** {token_name}\n"
                             f"**Time:** {tx_time.strftime('%Y-%m-%d %H:%M:%S')}"
                         )
                         await self.send_alert(message)
+                else:
+                    await self.send_alert(f"😴 No recent transactions found for {wallet_address[:8]}")
             
         except Exception as e:
             await self.send_alert(f"❌ Error monitoring wallet {wallet_address}: {e}")
