@@ -130,7 +130,11 @@ class WhaleTracker(commands.Bot):
                         
                         # Calculate actual amount and USD value
                         actual_amount = raw_amount / (10 ** token_decimals)
+                        await self.send_alert(f"DEBUG Step 1:\nRaw amount: {raw_amount}\nToken decimals: {token_decimals}")
+                        await self.send_alert(f"DEBUG Step 2:\nCalculated amount: {actual_amount}")
+                        await self.send_alert(f"DEBUG Step 3:\nRaw price_usd: {price_usd}")
                         usd_value = actual_amount * price_usd
+                        await self.send_alert(f"DEBUG Step 4:\nFinal USD value: {usd_value}")
                         if usd_value > 1000:
                             recent_txs.append((actual_amount, usd_value, tx_time, token_address))
                 
