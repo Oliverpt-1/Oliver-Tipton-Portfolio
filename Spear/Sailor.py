@@ -89,21 +89,15 @@ class WhaleTracker(commands.Bot):
     async def monitor_wallet(self, wallet_address: str):
         """Monitor a single wallet for significant changes"""
         try:
-            await self.send_alert(f"👀 Checking wallet: {wallet_address[:8]}...")
             response = self.get_balance_changes(wallet_address)
-            await self.send_alert(f"📥 Got response for {wallet_address[:8]}: {response.get('success', False)}")
             
             if response['success'] and 'data' in response:
                 transactions = response['data']
-                await self.send_alert(f"📊 Found {len(transactions)} transactions for {wallet_address[:8]}")
                 recent_txs = []
                 
                 for tx in transactions:
                     tx_time = datetime.datetime.fromtimestamp(tx.get('block_time', 0))
                     current_time = datetime.datetime.now()
-                    time_diff = current_time - tx_time
-                    
-                    await self.send_alert(f"⏰ Transaction time: {tx_time}, Time diff: {time_diff.total_seconds()/60:.2f} minutes")
                     
                     # Check if transaction is from the last 5 minutes
                     if tx_time > current_time - datetime.timedelta(minutes=5):
@@ -121,14 +115,13 @@ class WhaleTracker(commands.Bot):
                         recent_txs.append((actual_amount, usd_value, tx_time, token_address))
                 
                 if recent_txs:
-                    await self.send_alert(f"✨ Found {len(recent_txs)} recent transactions for {wallet_address[:8]}")
                     # Sort by USD value, largest first
                     recent_txs.sort(key=lambda x: x[1], reverse=True)
                     
                     for amount, usd_value, tx_time, token_address in recent_txs:
                         message = (
                             f"💰 **Transaction Alert** 💰\n"
-                            f"**Wallet:** {wallet_address[:8]}...{wallet_address[-6:]}\n"
+                            f"**Wallet:** {wallet_address}\n"
                             f"**Token:** {token_address}\n"
                             f"**Amount:** {amount:.4f} (USD: ${usd_value:.2f})\n"
                             f"**Time:** {tx_time.strftime('%Y-%m-%d %H:%M:%S')}"
