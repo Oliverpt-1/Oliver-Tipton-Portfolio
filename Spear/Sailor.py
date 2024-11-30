@@ -102,7 +102,7 @@ class WhaleTracker(commands.Bot):
             return "Unknown"
 
 
-    async def monitor_wallet(self, wallet_address: str):
+    async def monitor_wallet(self, wallet_address: str, wallet_name: str):
         """Monitor a single wallet for significant changes"""
         try:
             response = self.get_balance_changes(wallet_address)
@@ -131,7 +131,7 @@ class WhaleTracker(commands.Bot):
                         # Calculate actual amount and USD value
                         actual_amount = raw_amount / (10 ** token_decimals)
                         usd_value = actual_amount * price_usd
-                        if usd_value > 5000:
+                        if usd_value > 1000:
                             recent_txs.append((actual_amount, usd_value, tx_time, token_address))
                 
                 if recent_txs:
@@ -142,14 +142,13 @@ class WhaleTracker(commands.Bot):
                         message = (
                             f"💰 **Transaction Alert** 💰\n"
                             f"**Wallet:** {wallet_address}\n"
+                            f"**Wallet Name:** {wallet_name}\n"
                             f"**Token:** {token_address}\n"
                             f"**Amount:** {amount:.4f} (USD: ${usd_value:.2f})\n"
                             f"**Token Name:** {token_name}\n"
                             f"**Time:** {tx_time.strftime('%Y-%m-%d %H:%M:%S')}"
                         )
                         await self.send_alert(message)
-                else:
-                    await self.send_alert(f"😴 No recent transactions found for {wallet_address[:8]}")
             
         except Exception as e:
             await self.send_alert(f"❌ Error monitoring wallet {wallet_address}: {e}")
@@ -160,17 +159,18 @@ class WhaleTracker(commands.Bot):
         print("🔄 TRACK_WHALES LOOP RUNNING")
         try:
             print(f"\n[{datetime.datetime.now()}] 🔍 Starting wallet check cycle...")
-            await self.send_alert("🔍 Checking wallets...")
+
             current_dir = os.path.dirname(os.path.abspath(__file__))
             wallet_file = os.path.join(current_dir, 'wallet.txt')
 
             with open(wallet_file, 'r') as f:
-                whale_addresses = [line.strip() for line in f.readlines() if line.strip()]
-                
-            await self.send_alert(f"📋 Found {len(whale_addresses)} wallets to monitor")
-            
-            for address in whale_addresses:
-                await self.monitor_wallet(address)
+                whale_addresses = []
+                for line in f:
+                    name, address = line.strip().split(':', 1)
+                    whale_addresses.append((name.strip(), address.strip()))
+
+            for address, name in whale_addresses:
+                await self.monitor_wallet(address, name)
                 
             print(f"✅ Completed check cycle at {datetime.datetime.now()}\n")
                 
