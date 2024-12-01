@@ -151,7 +151,7 @@ class WhaleTracker(commands.Bot):
                             f"**Token Name:** {name}\n"
                             f"**Amount:** {amount:.4f}\n"
                             f"**USD Value:** ${usd_value:.2f}\n"
-                            f"**Time:** {tx_time.strftime('%Y-%m-%d %H:%M:%S')}"
+                            f"**Time:** {(tx_time - datetime.timedelta(hours=6)).strftime('%Y-%m-%d %H:%M:%S')}"
                         )
                         await self.send_alert(message)
             
