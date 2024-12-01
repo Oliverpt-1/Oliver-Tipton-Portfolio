@@ -135,7 +135,7 @@ class WhaleTracker(commands.Bot):
                         usd_value = actual_amount * price_usd
 
 
-                        if abs(usd_value) > 1000:
+                        if usd_value > 1000:
                             recent_txs.append((actual_amount, usd_value, tx_time, token_address, token_name))
                 
                 if recent_txs:
@@ -151,7 +151,7 @@ class WhaleTracker(commands.Bot):
                             f"**Token Name:** {name}\n"
                             f"**Amount:** {amount:.4f}\n"
                             f"**USD Value:** ${usd_value:.2f}\n"
-                            f"**Time:** {(tx_time - datetime.timedelta(hours=6)).strftime('%Y-%m-%d %H:%M:%S')}"
+                            f"**Time:** {(tx_time - datetime.timedelta(hours=5)).strftime('%Y-%m-%d %H:%M:%S')}"
                         )
                         await self.send_alert(message)
             
