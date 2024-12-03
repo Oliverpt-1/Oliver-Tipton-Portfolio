@@ -122,8 +122,9 @@ class WhaleTracker(commands.Bot):
                         token_address = tx.get('token_address', 'Unknown')
                         change_type = tx.get('change_type', 'Unknown')
                         token_name = self.get_token_name(token_address)
-                        if token_address == 'So11111111111111111111111111111111111111111':
+                        if token_address == 'So11111111111111111111111111111111111111111' or token_address == 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB':
                             continue
+                        
                         
                         if change_type != 'inc':
                             raw_amount = -1 * raw_amount
