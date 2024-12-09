@@ -191,9 +191,12 @@ class WhaleTracker(commands.Bot):
     @commands.Cog.listener()
     async def on_ready(self):
         print("🤖 BOT IS READY AND CONNECTED TO DISCORD")
-        channel = self.get_channel(self.DISCORD_CHANNEL_ID)
-        if channel:
-            await channel.send("Bot is online and monitoring!")
+        try:
+            channel = self.get_channel(self.DISCORD_CHANNEL_ID)
+            if channel:
+                await asyncio.create_task(channel.send("Bot is online and monitoring!"))
+        except Exception as e:
+            print(f"Error sending ready message: {e}")
 
 def start_server():
     PORT = int(os.getenv('PORT', 10000))
