@@ -2,9 +2,6 @@ import requests
 import time
 import datetime
 import os
-from flask import Flask, jsonify  # Import Flask and jsonify
-
-app = Flask(__name__)  # Initialize Flask app
 
 class TokenAnalyzer:
     def __init__(self):
@@ -22,7 +19,7 @@ class TokenAnalyzer:
         endpoint = f"{self.base_url}/token/holders"
         all_holders = []
         
-        for page in range(1, 3):
+        for page in range(1, 26):
             params = {
                 'address': token_address,
                 'page': page,
@@ -46,6 +43,7 @@ class TokenAnalyzer:
                 print(f"Error fetching holders page {page}: {e}")
                 break
                 
+            time.sleep(1)  # Rate limiting
     
         return all_holders
 
@@ -54,7 +52,7 @@ class TokenAnalyzer:
         endpoint = f"{self.base_url}/account/balance_change"
         all_changes = []
         
-        for page in range(1, 5):
+        for page in range(1, 26):
             params = {
                 'address': wallet_address,
                 'page': page,
@@ -84,6 +82,7 @@ class TokenAnalyzer:
                 print(f"Error fetching balance changes page {page} for {wallet_address}: {e}")
                 break
                 
+            time.sleep(1)  # Rate limiting
         
         return all_changes
 
@@ -112,45 +111,12 @@ class TokenAnalyzer:
             
         return 0
 
-    def get_holder_top_holdings(self, wallet_address: str) -> list:
-        """Get the top holdings of a wallet in USD"""
-        endpoint = f"{self.base_url}/account/token-accounts"
-        params = {
-            'address': wallet_address,
-            'type': 'token',
-            'page_size': 10  # Adjust as needed
-        }
-        
-        try:
-            response = requests.get(endpoint, headers=self.headers, params=params)
-            response.raise_for_status()
-            data = response.json()
-            
-            if data.get('success') and 'data' in data:
-                holdings = []
-                for token_account in data['data']:
-                    token_address = token_account['token_address']
-                    amount = token_account['amount'] / (10 ** token_account['token_decimals'])  # Adjust for decimals
-                    price = self.get_token_price_at_time(token_address, int(time.time()))  # Get current price
-                    holdings.append({
-                        'token_address': token_address,
-                        'amount': amount,
-                        'usd_value': amount * price
-                    })
-                return sorted(holdings, key=lambda x: x['usd_value'], reverse=True)[:5]  # Top 5 holdings
-        except Exception as e:
-            print(f"Error fetching top holdings for {wallet_address}: {e}")
-        
-        return []
-
     def analyze_wallet_profits(self, wallet_address: str, token_address: str):
-        """Analyze profits for a wallet's trades and get top holdings"""
+        """Analyze profits for a wallet's trades"""
         changes = self.get_balance_changes(wallet_address, token_address)
         token_positions = {}
         reported_trades = set()  # Track already reported trades
-        profit_wallets = []
-        top_holdings = {}  # To store holdings across all wallets
-
+        
         for change in changes:
             token = change['token_address']
             amount = abs(float(change['amount'])) / (10 ** change['token_decimals'])
@@ -185,7 +151,6 @@ class TokenAnalyzer:
                             trade_key = f"{wallet_address}_{token}_{position['entry_time']}"
                             
                             if trade_key not in reported_trades:
-                                profit_wallets.append([wallet_address, profit_percentage])
                                 trade_time = datetime.datetime.fromtimestamp(timestamp)
                                 starting_amount_usd = position['amount'] * position['entry_price']
                                 ending_amount_usd = position['amount'] * exit_price
@@ -213,62 +178,20 @@ Profit Percentage: {profit_percentage:.2f}%
                     if position['amount'] <= 0:
                         del token_positions[token]
 
-        # Get top holdings for the wallet
-        wallet_holdings = self.get_holder_top_holdings(wallet_address)
-        for holding in wallet_holdings:
-            token_address = holding['token_address']
-            if token_address in top_holdings:
-                top_holdings[token_address] += holding['usd_value']
-            else:
-                top_holdings[token_address] = holding['usd_value']
-
-        return profit_wallets, top_holdings
-
-@app.route('/analyze', methods=['GET'])  # Create API endpoint
-def analyze():
-    token_addresses = ['HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC',
-                       'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm', 
-                       'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263', 
-                       'CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump', 
-                       '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump', 
-                       '2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv', 
-                       'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm',
-                       '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr', 
-                       '8x5VqbHA8D7NkD52uNuS5nnt3PwA8pLD34ymskeSo2Wn']
-
-    all_top_holdings = {}  # To store conglomerated top holdings
-    top_5_holders = []
-
-    for token_address in token_addresses:
-        analyzer = TokenAnalyzer()
-        
-        # Get top holders
-        holders = analyzer.get_top_holders(token_address)
-        print(f"Found {len(holders)} holders")
-        
-        # Analyze each holder's wallet
-        for idx, holder in enumerate(holders[20:]):
-            print(f"\nAnalyzing holder {idx + 1}/{len(holders)}: {holder['address']}")
-            profits, holdings = analyzer.analyze_wallet_profits(holder['address'], token_address)
-            largest_profit = 0
-            for profit in profits:
-                largest_profit = max(profit[1], largest_profit)
-            top_5_holders.append((holder['address'], largest_profit))  # Store address and profit
-            
-            # Conglomerate holdings
-            for token_address, usd_value in holdings.items():
-                if token_address in all_top_holdings:
-                    all_top_holdings[token_address] += usd_value
-                else:
-                    all_top_holdings[token_address] = usd_value
-
-    # Get top 10 holdings across all analyzed wallets
-    top_10_holdings = sorted(all_top_holdings.items(), key=lambda x: x[1], reverse=True)[:10]
-
-    return jsonify({
-        'top_10_holdings': top_10_holdings,
-        'top_5_gainers': top_5_holders
-    })
+def main():
+    # Example token address - replace with your target token
+    token_address = '79yTpy8uwmAkrdgZdq6ZSBTvxKsgPrNqTLvYQBh1pump'
+    analyzer = TokenAnalyzer()
+    
+    # Get top holders
+    holders = analyzer.get_top_holders(token_address)
+    print(f"Found {len(holders)} holders")
+    
+    # Analyze each holder's wallet
+    for idx, holder in enumerate(holders[20:]):
+        print(f"\nAnalyzing holder {idx + 1}/{len(holders)}: {holder['address']}")
+        analyzer.analyze_wallet_profits(holder['address'], token_address)
+        time.sleep(0.1)  # Rate limiting between holders
 
 if __name__ == "__main__":
-    app.run(debug=True)  # Run the Flask app
+    main()
