@@ -138,6 +138,9 @@ class WhaleTracker(commands.Bot):
 
                         if usd_value > 1000:
                             recent_txs.append((actual_amount, usd_value, tx_time, token_address, token_name))
+                        if wallet_name == "Him" or wallet_name == "Him 2":
+                            if usd_value <= -1000:
+                                recent_txs.append((actual_amount, usd_value, tx_time, token_address, token_name))
                 
                 if recent_txs:
                     # Sort by USD value, largest first
