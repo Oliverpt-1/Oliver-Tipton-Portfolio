@@ -198,9 +198,13 @@ class WhaleTracker(commands.Bot):
     async def on_ready(self):
         print("🤖 BOT IS READY AND CONNECTED TO DISCORD")
         try:
-            channel = self.get_channel(self.DISCORD_CHANNEL_ID)
-            if channel:
-                await asyncio.create_task(channel.send("Bot is online and monitoring!"))
+            # Loop through all channel IDs in the list and send the message
+            for channel_id in self.DISCORD_CHANNEL_IDS:
+                channel = self.get_channel(channel_id)
+                if channel:
+                    await channel.send("Bot is online and monitoring!")
+                else:
+                    print(f"Could not find channel {channel_id}")
         except Exception as e:
             print(f"Error sending ready message: {e}")
 
