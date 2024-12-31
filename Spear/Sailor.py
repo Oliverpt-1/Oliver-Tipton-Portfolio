@@ -24,7 +24,7 @@ class WhaleTracker(commands.Bot):
         self.base_url = "https://pro-api.solscan.io/v2.0"
         
         # Discord channel configuration
-        self.DISCORD_CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID'))
+        self.DISCORD_CHANNEL_IDS = list(map(int, os.getenv('DISCORD_CHANNEL_IDS', '').split(',')))
 
     async def setup_hook(self):
         print("🚀 Setup hook called...")
@@ -157,7 +157,10 @@ class WhaleTracker(commands.Bot):
                             f"**USD Value:** ${usd_value:.2f}\n"
                             f"**Time:** {(tx_time - datetime.timedelta(hours=5)).strftime('%Y-%m-%d %H:%M:%S')}"
                         )
-                        await self.send_alert(message)
+                        for channel_id in self.DISCORD_CHANNEL_IDS:  # Loop through all channel IDs
+                            channel = self.get_channel(channel_id)
+                            if channel:
+                                await channel.send(message)
             
         except Exception as e:
             await self.send_alert(f"❌ Error monitoring wallet {wallet_address}: {e}")
