@@ -24,7 +24,7 @@ class WhaleTracker(commands.Bot):
         self.base_url = "https://pro-api.solscan.io/v2.0"
         
         # Discord channel configuration
-        self.DISCORD_CHANNEL_IDS = list(map(int, os.getenv('DISCORD_CHANNEL_IDS', '').split(',')))
+        self.DISCORD_CHANNEL_IDS = [1312524220722450604, 1323537633095188520]
 
     async def setup_hook(self):
         print("🚀 Setup hook called...")
