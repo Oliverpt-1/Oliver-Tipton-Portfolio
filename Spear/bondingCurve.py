@@ -70,7 +70,15 @@ class BondingCurve(commands.Bot):
     # Extract token address from topics
     def extract_token_address(self, topic):
         return self.web3.to_checksum_address("0x" + topic.hex()[-40:])
-    
+
+    async def setup_hook(self):
+        print("🚀 Setup hook called...")
+        try:
+            self.track_whales.start()
+            print("✅ Tracking loop started!")
+        except Exception as e:
+            print(f"❌ ERROR STARTING TRACKING LOOP: {e}")
+            
     async def send_alert(self, message: str):
         """Send Discord alert"""
         try:
