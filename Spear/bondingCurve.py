@@ -74,11 +74,11 @@ class BondingCurve(commands.Bot):
     async def setup_hook(self):
         print("🚀 Setup hook called...")
         try:
-            self.track_whales.start()
+            self.listen_to_events.start()
             print("✅ Tracking loop started!")
         except Exception as e:
             print(f"❌ ERROR STARTING TRACKING LOOP: {e}")
-            
+
     async def send_alert(self, message: str):
         """Send Discord alert"""
         try:
