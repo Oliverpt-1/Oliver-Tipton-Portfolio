@@ -95,7 +95,7 @@ class BondingCurve(commands.Bot):
         except Exception as e:
             print(f"Error sending Discord alert: {e}")
 
-    @tasks.loop(seconds=2)  # Run every 2 seconds instead of using while True
+    @tasks.loop(seconds=15)  # Run every 15 seconds instead of using while True
     async def listen_to_events(self):
         try:
             event_filter = self.web3.eth.filter({'address': self.PROXY_CONTRACT_ADDRESS})
