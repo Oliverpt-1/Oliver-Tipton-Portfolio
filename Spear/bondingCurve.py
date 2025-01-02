@@ -96,6 +96,7 @@ class BondingCurve(commands.Bot):
             print(f"Error sending Discord alert: {e}")
 
     # Main loop
+    @tasks.loop(count = 1)  # Run every 2 seconds
     async def listen_to_events(self):
         await self.send_alert("Onchain sleuth is up bitchessss.....")
         event_filter = self.web3.eth.filter({'address': self.PROXY_CONTRACT_ADDRESS})
