@@ -100,7 +100,6 @@ class BondingCurve(commands.Bot):
         try:
             event_filter = self.web3.eth.filter({'address': self.PROXY_CONTRACT_ADDRESS})
             events = event_filter.get_new_entries()
-            await self.send_alert("I'm locked in.")
             for event in events:
                 if "0x" + event['topics'][0].hex() == self.graduated_event:
                     await self.send_alert(event)
