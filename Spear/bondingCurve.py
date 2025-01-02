@@ -81,6 +81,7 @@ class BondingCurve(commands.Bot):
         try:
             # Start the event listening loop
             self.event_filter = self.web3.eth.filter({'address': self.PROXY_CONTRACT_ADDRESS})
+            await self.send_alert("Event Filter:," self.event_filter)
             self.listen_to_events.start()
             print("✅ Tracking loop started!")
         except Exception as e:
