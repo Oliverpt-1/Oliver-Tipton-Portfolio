@@ -14,6 +14,10 @@ import asyncio
 class BondingCurve(commands.Bot):
     def __init__(self):
         # Initialize properties
+        intents = discord.Intents.default()
+        intents.message_content = True
+        super().__init__(command_prefix='!', intents=intents)
+        
         self.RPC_URL = "https://base-mainnet.g.alchemy.com/v2/PkGfBEuppZDsdfWHSFOkYDJ9Y-VJjkxx"  # Replace with your RPC URL
         self.web3 = Web3(Web3.HTTPProvider(self.RPC_URL))
         self.PROXY_CONTRACT_ADDRESS = self.web3.to_checksum_address("0xf66dea7b3e897cd44a5a231c61b6b4423d613259")
