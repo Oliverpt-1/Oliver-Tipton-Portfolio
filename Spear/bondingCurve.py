@@ -100,7 +100,7 @@ class BondingCurve(commands.Bot):
         try:
             event_filter = self.web3.eth.filter({'address': self.PROXY_CONTRACT_ADDRESS})
             events = event_filter.get_new_entries()
-            
+            await self.send_alert("Locked in.")
             for event in events:
                 if "0x" + event['topics'][0].hex() == self.graduated_event:
                     await self.send_alert(event)
@@ -116,14 +116,13 @@ class BondingCurve(commands.Bot):
     async def before_listen_to_events(self):
         # Wait for the bot to be ready before starting the loop
         await self.wait_until_ready()
-        await self.send_alert("Onchain sleuth is up and running! 🕵️‍♂️")
 
     @commands.Cog.listener()
     async def on_ready(self):
         print("🤖 BOT IS READY AND CONNECTED TO DISCORD")
         channel = self.get_channel(self.DISCORD_CHANNEL_ID)
         if channel:
-            await channel.send("Bot is online and monitoring! 🚀")
+            print("hey")
 
 def start_server():
     PORT = int(os.getenv('PORT', 10000))
