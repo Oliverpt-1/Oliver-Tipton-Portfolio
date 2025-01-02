@@ -17,7 +17,7 @@ class BondingCurve(commands.Bot):
         intents = discord.Intents.default()
         intents.message_content = True
         super().__init__(command_prefix='!', intents=intents)
-        
+
         self.RPC_URL = "https://base-mainnet.g.alchemy.com/v2/PkGfBEuppZDsdfWHSFOkYDJ9Y-VJjkxx"  # Replace with your RPC URL
         self.web3 = Web3(Web3.HTTPProvider(self.RPC_URL))
         self.PROXY_CONTRACT_ADDRESS = self.web3.to_checksum_address("0xf66dea7b3e897cd44a5a231c61b6b4423d613259")
@@ -103,11 +103,7 @@ class BondingCurve(commands.Bot):
             events = event_filter.get_new_entries()
             for event in events:
                 try:
-                    if "0x" + event['topics'][0].hex() == self.launched_event:
-                        token_address = self.extract_token_address(event['topics'][1])
-                        print(f"[Launched] Token: {token_address}")
-                        await self.send_alert(message)
-                    elif "0x" + event['topics'][0].hex() == self.graduated_event:
+                    if "0x" + event['topics'][0].hex() == self.graduated_event:
                         print(event)
                         token_address = self.extract_token_address(event['data'])
                         print(f"[Graduated] Token: {token_address}")
