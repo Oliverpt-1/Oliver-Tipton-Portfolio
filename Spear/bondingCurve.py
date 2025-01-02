@@ -133,7 +133,7 @@ def start_server():
         httpd.serve_forever()
 
 def main():
-    # Start the HTTP server in a separate thread
+    import threading
     server_thread = threading.Thread(target=start_server)
     server_thread.daemon = True
     server_thread.start()
