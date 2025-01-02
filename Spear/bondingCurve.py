@@ -103,7 +103,7 @@ class BondingCurve(commands.Bot):
             
             for event in events:
                 if "0x" + event['topics'][0].hex() == self.graduated_event:
-                    print(event)
+                    await self.send_alert(event)
                     token_address = self.extract_token_address(event['data'])
                     print(f"[Graduated] Token: {token_address}")
                     await self.send_alert(f"[Graduated] Token: {token_address}")
