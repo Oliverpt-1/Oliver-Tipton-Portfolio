@@ -116,7 +116,7 @@ class BondingCurve(commands.Bot):
     @commands.Cog.listener()
     async def on_ready(self):
         print("🤖 BOT IS READY AND CONNECTED TO DISCORD")
-        channel = self.DISCORD_CHANNEL_ID
+        channel = self.get_channel(self.DISCORD_CHANNEL_ID)
         if channel:
             await channel.send("Bot is online and monitoring!")
 
