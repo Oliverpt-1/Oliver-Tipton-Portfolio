@@ -70,7 +70,7 @@ class BondingCurve(commands.Bot):
         self.launched_event = '0x714aa39317ad9a7a7a99db52b44490da5d068a0b2710fffb1a1282ad3cadae1f'
         self.graduated_event = '0x381d54fa425631e6266af114239150fae1d5db67bb65b4fa9ecc65013107e07e'
         self.DISCORD_CHANNEL_ID = 1324219120530493552
-        self.event_filter = self.web3.eth.filter({'address': self.PROXY_CONTRACT_ADDRESS})
+        self.event_filter = None
 
     # Extract token address from topics
     def extract_token_address(self, topic):
@@ -80,6 +80,7 @@ class BondingCurve(commands.Bot):
         print("🚀 Setup hook called...")
         try:
             # Start the event listening loop
+            self.event_filter = self.web3.eth.filter({'address': self.PROXY_CONTRACT_ADDRESS})
             self.listen_to_events.start()
             print("✅ Tracking loop started!")
         except Exception as e:
