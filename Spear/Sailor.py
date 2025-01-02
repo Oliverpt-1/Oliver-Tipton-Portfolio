@@ -202,7 +202,7 @@ class WhaleTracker(commands.Bot):
             for channel_id in self.DISCORD_CHANNEL_IDS:
                 channel = self.get_channel(channel_id)
                 if channel:
-                    print("all good")
+                    print("all")
                 else:
                     print(f"Could not find channel {channel_id}")
         except Exception as e:
