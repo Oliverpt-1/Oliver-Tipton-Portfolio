@@ -78,13 +78,13 @@ class BondingCurve(commands.Bot):
     async def setup_hook(self):
         print("🚀 Setup hook called...")
         try:
+            # Start the event listening loop
             self.listen_to_events.start()
             print("✅ Tracking loop started!")
         except Exception as e:
             print(f"❌ ERROR STARTING TRACKING LOOP: {e}")
 
     async def send_alert(self, message: str):
-        """Send Discord alert"""
         try:
             channel = self.get_channel(self.DISCORD_CHANNEL_ID)
             if channel:
@@ -95,31 +95,35 @@ class BondingCurve(commands.Bot):
         except Exception as e:
             print(f"Error sending Discord alert: {e}")
 
-    # Main loop
-    @tasks.loop(count = 1)  # Run every 2 seconds
+    @tasks.loop(seconds=2)  # Run every 2 seconds instead of using while True
     async def listen_to_events(self):
-        await self.send_alert("Onchain sleuth is up bitchessss.....")
-        event_filter = self.web3.eth.filter({'address': self.PROXY_CONTRACT_ADDRESS})
-        while True:
+        try:
+            event_filter = self.web3.eth.filter({'address': self.PROXY_CONTRACT_ADDRESS})
             events = event_filter.get_new_entries()
+            
             for event in events:
-                try:
-                    if "0x" + event['topics'][0].hex() == self.graduated_event:
-                        print(event)
-                        token_address = self.extract_token_address(event['data'])
-                        print(f"[Graduated] Token: {token_address}")
-                        message = f"[Graduated] Token: {token_address}"
-                        await self.send_alert(message)
-                except Exception as e:
-                    print(f"Error processing event: {e}")
-            time.sleep(2)
+                if "0x" + event['topics'][0].hex() == self.graduated_event:
+                    print(event)
+                    token_address = self.extract_token_address(event['data'])
+                    print(f"[Graduated] Token: {token_address}")
+                    await self.send_alert(f"[Graduated] Token: {token_address}")
+                    
+        except Exception as e:
+            print(f"Error in listen_to_events: {e}")
+            # Don't stop the loop on error, just log it
+            
+    @listen_to_events.before_loop
+    async def before_listen_to_events(self):
+        # Wait for the bot to be ready before starting the loop
+        await self.wait_until_ready()
+        await self.send_alert("Onchain sleuth is up and running! 🕵️‍♂️")
 
     @commands.Cog.listener()
     async def on_ready(self):
         print("🤖 BOT IS READY AND CONNECTED TO DISCORD")
         channel = self.get_channel(self.DISCORD_CHANNEL_ID)
         if channel:
-            await channel.send("Bot is online and monitoring!")
+            await channel.send("Bot is online and monitoring! 🚀")
 
 def start_server():
     PORT = int(os.getenv('PORT', 10001))
@@ -129,10 +133,12 @@ def start_server():
         httpd.serve_forever()
 
 def main():
-    import threading
+    # Start the HTTP server in a separate thread
     server_thread = threading.Thread(target=start_server)
-    server_thread.daemon = True  # This ensures the thread closes when the main program exits
+    server_thread.daemon = True
     server_thread.start()
+    
+    # Start the bot
     bot = BondingCurve()
     bot.run(os.getenv('DISCORD_TOKEN'))
 
