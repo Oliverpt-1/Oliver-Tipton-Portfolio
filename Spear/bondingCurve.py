@@ -121,7 +121,7 @@ class BondingCurve(commands.Bot):
             await channel.send("Bot is online and monitoring!")
 
 def start_server():
-    PORT = int(os.getenv('PORT', 10000))
+    PORT = int(os.getenv('PORT', 10001))
     Handler = http.server.SimpleHTTPRequestHandler
     with socketserver.TCPServer(("", PORT), Handler) as httpd:
         print(f"Serving at port {PORT}")
