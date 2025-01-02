@@ -129,5 +129,4 @@ def main():
 
 if __name__ == "__main__":
     print("🚀 MAIN FUNCTION STARTING")
-    bonding_curve = BondingCurve()
-    bonding_curve.listen_to_events()  # Start listening to events
+    main()
