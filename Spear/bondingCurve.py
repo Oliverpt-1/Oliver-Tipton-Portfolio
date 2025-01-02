@@ -109,9 +109,9 @@ class BondingCurve(commands.Bot):
                     print(f"[Graduated] Token: {token_address}")
                     await self.send_alert(f"[Graduated] Token: {token_address}")
                 
-                if "0x" + event['topics'][0].hex() == self.launched_event:
-                    token_address = self.extract_token_address(event['topics'][1])
-                    await self.send_alert(f"[Launched] Token: {token_address}")
+             #   if "0x" + event['topics'][0].hex() == self.launched_event:
+              #      token_address = self.extract_token_address(event['topics'][1])
+               #     await self.send_alert(f"[Launched] Token: {token_address}")
                     
         except Exception as e:
             print(f"Error in listen_to_events: {e}")
