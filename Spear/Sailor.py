@@ -117,6 +117,7 @@ class WhaleTracker(commands.Bot):
                     
                     # Check if transaction is from the last 5 minutes
                     if tx_time > current_time - datetime.timedelta(minutes=5):
+                        await channel.send(tx)
                         raw_amount = float(tx.get('amount', 0))
                         token_decimals = tx.get('token_decimals', 9)
                         token_address = tx.get('token_address', 'Unknown')
