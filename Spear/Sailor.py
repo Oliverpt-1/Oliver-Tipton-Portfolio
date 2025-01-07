@@ -58,10 +58,10 @@ class WhaleTracker(commands.Bot):
     async def send_alert(self, message: str):
         """Send Discord alert"""
         try:
-            channel = self.get_channel(self.DISCORD_CHANNEL_ID)
-            if channel:
-                await channel.send(message)
-                print(f"Alert sent: {message}")
+            for channel_id in self.DISCORD_CHANNEL_IDS:  # Loop through all channel IDs
+                channel = self.get_channel(channel_id)
+                if channel:
+                    await channel.send(message)
             else:
                 print("Could not find Discord channel")
         except Exception as e:
@@ -117,7 +117,7 @@ class WhaleTracker(commands.Bot):
                     
                     # Check if transaction is from the last 5 minutes
                     if tx_time > current_time - datetime.timedelta(minutes=5):
-                        await channel.send(tx)
+                        await self.send_alert(tx)
                         raw_amount = float(tx.get('amount', 0))
                         token_decimals = tx.get('token_decimals', 9)
                         token_address = tx.get('token_address', 'Unknown')
@@ -158,10 +158,7 @@ class WhaleTracker(commands.Bot):
                             f"**USD Value:** ${usd_value:.2f}\n"
                             f"**Time:** {(tx_time - datetime.timedelta(hours=5)).strftime('%Y-%m-%d %H:%M:%S')}"
                         )
-                        for channel_id in self.DISCORD_CHANNEL_IDS:  # Loop through all channel IDs
-                            channel = self.get_channel(channel_id)
-                            if channel:
-                                await channel.send(message)
+                        await self.send_alert(message)
             
         except Exception as e:
             await self.send_alert(f"❌ Error monitoring wallet {wallet_address}: {e}")
