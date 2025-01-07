@@ -126,8 +126,8 @@ class WhaleTracker(commands.Bot):
                             continue
                         
                         
-                        if change_type != 'inc':
-                            continue
+                       # if change_type != 'inc':
+                         #   continue
                         # Get current token price
                         price_usd = self.get_token_price(token_address) if token_address else 0
                         
