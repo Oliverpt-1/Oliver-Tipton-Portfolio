@@ -117,7 +117,7 @@ class WhaleTracker(commands.Bot):
                     
                     # Check if transaction is from the last 5 minutes
                     if tx_time > current_time - datetime.timedelta(minutes=5):
-                        raw_amount = float(tx[post_balance]) - float(tx[pre_balance])
+                        raw_amount = float(tx['post_balance']) - float(tx['pre_balance'])
                         token_decimals = tx.get('token_decimals', 9)
                         token_address = tx.get('token_address', 'Unknown')
                         token_name = self.get_token_name(token_address)
