@@ -23,7 +23,7 @@ class WhaleTracker(commands.Bot):
         }
         self.base_url = "https://pro-api.solscan.io/v2.0"
         
-        # Discord channel configuration
+        # Discord channel configuration 
         self.DISCORD_CHANNEL_IDS = [1312524220722450604, 1323537633095188520]
 
     async def setup_hook(self):
@@ -117,17 +117,14 @@ class WhaleTracker(commands.Bot):
                     
                     # Check if transaction is from the last 5 minutes
                     if tx_time > current_time - datetime.timedelta(minutes=5):
-                        raw_amount = float(tx.get('amount', 0))
+                        raw_amount = float(tx[post_balance]) - float(tx[pre_balance])
                         token_decimals = tx.get('token_decimals', 9)
                         token_address = tx.get('token_address', 'Unknown')
-                        change_type = tx.get('change_type', 'Unknown')
                         token_name = self.get_token_name(token_address)
                         if token_address == 'So11111111111111111111111111111111111111111' or token_address == 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB' or token_address == 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
                             continue
                         
                         
-                       # if change_type != 'inc':
-                         #   continue
                         # Get current token price
                         price_usd = self.get_token_price(token_address) if token_address else 0
                         
@@ -136,12 +133,8 @@ class WhaleTracker(commands.Bot):
                         usd_value = actual_amount * price_usd
 
 
-                        if usd_value > 1000:
-                            await self.send_alert(tx)
+                        if usd_value > 1000 or usd_value < -1000:
                             recent_txs.append((actual_amount, usd_value, tx_time, token_address, token_name))
-                        if wallet_name == "Him" or wallet_name == "Him 2":
-                            if usd_value <= -1000:
-                                recent_txs.append((actual_amount, usd_value, tx_time, token_address, token_name))
                 
                 if recent_txs:
                     # Sort by USD value, largest first
@@ -158,7 +151,12 @@ class WhaleTracker(commands.Bot):
                             f"**USD Value:** ${usd_value:.2f}\n"
                             f"**Time:** {(tx_time - datetime.timedelta(hours=5)).strftime('%Y-%m-%d %H:%M:%S')}"
                         )
-                        await self.send_alert(message)
+                        if usd_value >= 1000:
+                            await self.send_alert(message)
+                        if usd_value <= -1000:
+                            channel = self.get_channel(1313432989769924668)
+                            if channel:
+                                await channel.send(message)
             
         except Exception as e:
             await self.send_alert(f"❌ Error monitoring wallet {wallet_address}: {e}")
