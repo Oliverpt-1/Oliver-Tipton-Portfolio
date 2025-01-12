@@ -143,9 +143,9 @@ class WhaleTracker(commands.Bot):
                     for amount, usd_value, tx_time, token_address, name in recent_txs:
                         message = (
                             f"💰 **Transaction Alert** 💰\n"
-                            f"**Wallet:** https://solscan.io/account/{wallet_address}\n"
+                            f"**Wallet:** <https://solscan.io/account/{wallet_address}>\n"
                             f"**Wallet Name:** {wallet_name}\n"
-                            f"**Token:** https://solscan.io/token/{token_address}\n"
+                            f"**Token:** <https://solscan.io/token/{token_address}>\n"
                             f"**Token Name:** {name}\n"
                             f"**Amount:** {amount:.4f}\n"
                             f"**USD Value:** ${usd_value:.2f}\n"
