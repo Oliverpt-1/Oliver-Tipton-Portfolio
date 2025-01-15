@@ -107,16 +107,12 @@ class BondingCurve(commands.Bot):
                     token_address = self.extract_token_address(event['data'])
                     print(f"[Graduated] Token: {token_address}")
                     await self.send_alert(f"[Graduated] Token: https://dexscreener.com/base/{token_address}")
-                else:
+
+                if "0x" + event['topics'][0].hex() == self.launched_event:
+                    token_address = self.extract_token_address(event['topics'][1].hex())
                     channel = self.get_channel(1329038551299391539)
                     if channel:
-                        await channel.send(event)
-
-               # if "0x" + event['topics'][1].hex() == self.launched_event:
-                   # token_address = self.extract_token_address(event['topics'][1].hex())
-                   # channel = self.get_channel(1329038551299391539)
-                   # if channel:
-                   #     await channel.send(f"[Launched] Token: https://dexscreener.com/base/{token_address}")
+                        await channel.send(f"[Launched] Token: https://dexscreener.com/base/{token_address}")
 
                     
         except Exception as e:
