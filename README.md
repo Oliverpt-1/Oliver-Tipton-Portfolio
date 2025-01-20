@@ -1,18 +1,41 @@
-`About Me`
+# About Me
 
-My name is Oliver Tipton and I am a senior studying Computer Science at Davidson College.  Over the past three years, I have studied Computer Science and programming fundamentals such as Object-Oriented Programming, Data Structures, Algorithms, and more.  I have independently developed blockchain projects, as well as worked with other Davidson students on in-class assignments and independent project ideas.  In addition to my course load, I have competed at the Division 1 level in wrestling.  This experience has allowed me to continue to grow in discipline and perservence.  Some of my other interests include guitar, singing, and rubik's cubing.
+## Oliver Tipton
 
+Hello! My name is Oliver Tipton, and I am a senior studying Computer Science at Davidson College. Over the past three years, I have immersed myself in the world of Computer Science, focusing on programming fundamentals such as Object-Oriented Programming, Data Structures, Algorithms, and more.
 
-  `Blockchain Dev`:
-  
-  This section of the portfolio contains two projects which I have built in Solidity.  The first is the DAO, which we will be implementing as a core part of the Davidson Blockchain Club this coming spring.  The other, is a mock staking protocol which I built as a proof-of-concept.
-  
-  `Spear `:
-  
-  Spear (https://x.com/whale_spear), is a blockchain analysis software whcih I started building in November.  What started out as a way to track wallet addresses in the Solana ecosystem has quickly evolved.  We are now expanding into the Base ecosystem, including monitoring when virtuals agents launch and graduate, as well as tracking profitable Base whale addresses.  In addition to these, I am developing an AI Agent which will be running the Spear twitter account starting in February.  It will do research, watch profitable wallets, and become the only twitter account needed for degens to catch 100x projects early. 
+### Experience
+
+I have independently developed blockchain projects and collaborated with fellow Davidson students on various in-class assignments and independent project ideas. In addition to my academic pursuits, I have competed at the Division 1 level in wrestling, which has instilled in me a strong sense of discipline and perseverance.
 
 
 
+## Blockchain Development
 
+### Projects
 
+This section of my portfolio showcases two projects that I have built using Solidity:
 
+1. **DAO**: We will be implementing this project as a core part of the Davidson Blockchain Club this coming spring.  It will serve as our governance protocol for voting, funding delegation, and more.
+2. **Mock Staking Protocol**: This project serves as a proof-of-concept for staking mechanisms.  It was the first project I built using solidity this past summer.
+
+## Spear
+
+[Spear](https://x.com/whale_spear) is a blockchain analysis software that I began developing in November. What started as a tool to track wallet addresses in the Solana ecosystem has quickly evolved into a more comprehensive platform. 
+
+### Current Developments
+
+We are now expanding into the Base ecosystem, focusing on:
+- Monitoring when virtual agents launch and graduate.
+- Tracking profitable Base whale addresses.
+
+Additionally, I am developing an AI Agent that will manage the Spear Twitter account starting in February.  I am using the ElizaOS framework, written in Typescript. This AI will conduct research, monitor profitable wallets, and become the go-to Twitter account for degens looking to catch 100x projects early.
+
+### Interests
+
+Outside of my studies and athletics, I have a variety of interests, including:
+- **Music**: I love playing guitar, singing, and learning new styles.  Most recently, I completed in bluegrass nationals where I went head to head with the best flatpickers in teh country.
+
+---
+
+Thank you for taking the time to learn more about me and my projects! 
