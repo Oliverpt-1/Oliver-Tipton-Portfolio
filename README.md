@@ -3,13 +3,9 @@
 My name is Oliver Tipton and I am a senior studying Computer Science at Davidson College.  Over the past three years, I have studied Computer Science and programming fundamentals such as Object-Oriented Programming, Data Structures, Algorithms, and more.  I have independently developed blockchain projects, as well as worked with other Davidson students on in-class assignments and independent project ideas.  In addition to my course load, I have competed at the Division 1 level in wrestling.  This experience has allowed me to continue to grow in discipline and perservence.  Some of my other interests include guitar, singing, and rubik's cubing.
 
 
-`Portfolio`
-
-This portfolio can be broken up into two main sections: Blockchain portfolio and Spear.  
-
   `Blockchain Dev`:
   
-  This contains two projects which I have built in Solidity.  The first is the DAO, which we will be implementing as a core part of the Davidson Blockchain Club this coming spring.  The other, is a mock staking protocol which I built as a proof-of-concept.
+  This section of the portfolio contains two projects which I have built in Solidity.  The first is the DAO, which we will be implementing as a core part of the Davidson Blockchain Club this coming spring.  The other, is a mock staking protocol which I built as a proof-of-concept.
   
   `Spear `:
   
