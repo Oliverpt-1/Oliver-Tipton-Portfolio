@@ -6,7 +6,7 @@ Hello! My name is Oliver Tipton, and I am a senior studying Computer Science at 
 
 ### Experience
 
-I have independently developed blockchain projects and collaborated with fellow Davidson students on various in-class assignments and independent project ideas. My passion for blockchain has driven me to explore innovative solutions and contribute to the growing decentralized finance (DeFi) landscape. In addition to my academic pursuits, I have competed at the Division 1 level in wrestling, which has instilled in me a strong sense of discipline and perseverance.
+I have independently developed blockchain projects and collaborated with fellow Davidson students on various in-class assignments and independent project ideas. My passion for blockchain has driven me to explore innovative solutions and contribute to the growing decentralized finance (DeFi) landscape.  I am also currently working for an Ad Tech startup, helping build out some software and automation solutions this Spring. In addition to my academic pursuits, I have competed at the Division 1 level in wrestling, which has instilled in me a strong sense of discipline and perseverance.
 
 
 
