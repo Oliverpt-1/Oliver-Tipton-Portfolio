@@ -5,9 +5,9 @@ My name is Oliver Tipton and I am a senior studying Computer Science at Davidson
 
 `Portfolio`
 
-I have included the two blockchain projects that I have worked on.  Within each project is a readme file that outlines setup and what the project is meant to do.  The DAO is in progress and will be a part of the Davidson Blockchain Club that I will be starting on campus this fall.  The staking protocol is a mock to show my development skills and capabilities in developing DeFi applications.
+This portfolio can be broken up into two main sections: Blockchain portfolio and Spear.  The `Blockchain Dev` section contains two projects which I have built in Solidity.  The first is the DAO, which we will be implementing as a core part of the Davidson Blockchain Club this coming spring.  The other, is a mock staking protocol which I built as a proof-of-concept.
 
-I also have included projects from my algorithmic game theory course, which consisted of writing algorithms and implementing them to solve complex games and find nash equilibria.  The code is partially written by the professor as these are homework assignments, however the algorithms themselves were refined and implemented by me and two other students.
+The second section is called Spear.  Spear (https://x.com/whale_spear), is a blockchain analysis software whcih I started building in November.  What started out as a way to track wallet addresses in the Solana ecosystem has quickly evolved.  We are now expanding into the Base ecosystem, including monitoring when virtuals agents launch and graduate, as well as tracking profitable Base whale addresses.  In addition to these, I am developing an AI Agent which will be running the Spear twitter account starting in February.  It will do research, watch profitable wallets, and become the only twitter account needed for degens to catch 100x projects early. 
 
 
 
