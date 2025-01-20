@@ -2,7 +2,7 @@
 
 ## Oliver Tipton
 
-Hello! My name is Oliver Tipton, and I am a senior studying Computer Science at Davidson College. I am deeply immersed in the blockchain ecosystem, both as a developer and an active market participant. Over the past three years, I have honed my skills in programming fundamentals such as Object-Oriented Programming, Data Structures, and Algorithms, while focusing on blockchain technologies and decentralized applications.
+Hello! My name is Oliver Tipton, and I am a senior studying Computer Science at Davidson College. I am deeply immersed in the blockchain ecosystem, both as a developer and an active market participant. Over the past three years, I have honed my skills in programming fundamentals such as Object-Oriented Programming, Data Structures, and Algorithms, while focusing on blockchain technologies and decentralized finance.
 
 ### Experience
 
