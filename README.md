@@ -13,7 +13,7 @@ I am a founding engineer at **CTVBuyer**, an Ad Tech startup where I am helping 
 - **Backend:** Node.js, Express
 - **Infrastructure:** API integrations for data ingestion, scalable architecture for future features
 
-My role involves implementing core functionalities, designing UI/UX components, and ensuring our system is built for long-term growth.
+My role involves implementing core functionalities for their first in-house product - a dashboard which acts as an all-in-one place for tracking ad-tech data, buying, and selling ad space.
 
 ## Blockchain Development
 
